@@ -20,7 +20,7 @@ This application provides a bridge between MRI scanners/simulators and OpenIGTLi
 
 ## Building
 
-The project uses CMake for building:
+The project uses CMake for building both libraries and executable:
 
 ```bash
 # Create a build directory
@@ -34,12 +34,69 @@ cmake -DOpenIGTLink_DIR=/path/to/OpenIGTLink-build ..
 make
 ```
 
+This will generate:
+- A shared library: `libmrigtlbridge_cpp.so` (Linux) or `libmrigtlbridge_cpp.dylib` (macOS)
+- A static library: `libmrigtlbridge_cpp_static.a`
+- An executable: `mrigtlbridge_cpp`
+
 ## Running
 
 From the build directory:
 
 ```bash
 ./mrigtlbridge_cpp
+```
+
+## Using the Library
+
+### Including in Your Project
+
+To use the library in your own CMake project:
+
+```cmake
+# Find the package
+find_package(mrigtlbridge_cpp REQUIRED)
+
+# Link against the library
+target_link_libraries(your_target
+    mrigtlbridge_cpp::mrigtlbridge_cpp
+)
+```
+
+### Installation
+
+Install the library system-wide:
+
+```bash
+cd build
+make install
+```
+
+This will install:
+- The libraries to the system library directory
+- The headers to the system include directory
+- The executable to the system binary directory
+
+### Examples
+
+Basic usage:
+
+```cpp
+#include <mrigtlbridge_cpp/signal_manager.h>
+#include <mrigtlbridge_cpp/mr_igtl_bridge_window.h>
+
+int main(int argc, char** argv) {
+    QApplication app(argc, argv);
+    
+    // Create signal manager
+    auto signalManager = std::make_shared<mrigtlbridge::SignalManager>();
+    
+    // Create main window
+    mrigtlbridge::MainWindow mainWindow;
+    mainWindow.show();
+    
+    return app.exec();
+}
 ```
 
 ## Architecture
