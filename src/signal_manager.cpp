@@ -1,3 +1,17 @@
+/*=========================================================================
+
+  Program:   mrigtlbridge
+  Language:  C++
+  Web page:  https://github.com/ProstateBRP/mrigtlbridge_cpp
+
+  Copyright (c) Brigham and Women's Hospital. All rights reserved.
+
+  This software is distributed WITHOUT ANY WARRANTY; without even
+  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+  PURPOSE.  See the above copyright notices for more information.
+
+=========================================================================*/
+
 #include "signal_manager.h"
 #include "signal_wrap.h"
 #include "common.h"
