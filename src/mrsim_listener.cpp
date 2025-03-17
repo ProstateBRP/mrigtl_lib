@@ -19,6 +19,7 @@
 #include <QTime>
 #include <QCoreApplication>
 #include <QMutexLocker>
+#include <QDateTime>
 
 namespace mrigtlbridge {
 
@@ -61,6 +62,82 @@ void MRSimListener::process() {
         
         // Send console message
         signalManager->emitSignal("consoleTextMR", "Simulating MR acquisition...");
+        
+        try {
+            // Create a small simple test image first to debug IGTL sending
+            QVariantMap imageParam;
+            
+            // Set basic image parameters for a small test image
+            imageParam["dtype"] = "uint16";
+            
+            // Create small 256x256 image for testing
+            QVariantList dimensions;
+            dimensions.append(256);
+            dimensions.append(256);
+            dimensions.append(1);
+            imageParam["dimension"] = dimensions;
+            
+            QVariantList spacings;
+            spacings.append(1.0);
+            spacings.append(1.0);
+            spacings.append(1.0);
+            imageParam["spacing"] = spacings;
+            
+            imageParam["name"] = "TestImage";
+            imageParam["numberOfComponents"] = 1;
+            imageParam["endian"] = 2; // little endian
+            
+            // Default identity matrix
+            QVariantList matrix;
+            QVariantList row1, row2, row3, row4;
+            row1 << 1.0 << 0.0 << 0.0 << 0.0;
+            row2 << 0.0 << 1.0 << 0.0 << 0.0;
+            row3 << 0.0 << 0.0 << 1.0 << 0.0;
+            row4 << 0.0 << 0.0 << 0.0 << 1.0;
+            matrix << row1 << row2 << row3 << row4;
+            imageParam["matrix"] = matrix;
+            
+            // Debug matrix structure
+            signalManager->emitSignal("consoleTextMR", QString("Matrix size: %1").arg(matrix.size()));
+            
+            // Create a simple binary image
+            int width = 256;
+            int height = 256;
+            int size = width * height * 2;
+            QByteArray imgData;
+            imgData.resize(size);
+            
+            // Fill with a simple pattern (alternating values)
+            quint16* pixelData = reinterpret_cast<quint16*>(imgData.data());
+            for (int i = 0; i < width * height; i++) {
+                pixelData[i] = (i % 2 == 0) ? 1000 : 200;
+            }
+            
+            // Set the binary data
+            //QVariantList binary;
+            //binary.append(imgData);
+            imageParam["binary"] = imgData;
+
+            // Set binary offset
+            QVariantList binaryOffset;
+            binaryOffset.append(0);
+            imageParam["binaryOffset"] = binaryOffset;
+            
+            // Add timestamp
+            imageParam["timestamp"] = QDateTime::currentDateTime().toString(Qt::ISODate);
+            
+            // Debug output
+            signalManager->emitSignal("consoleTextMR", "Sending test image...");
+            
+            // Send the image via OpenIGTLink
+            signalManager->emitSignal("sendImageIGTL", imageParam);
+        } 
+        catch (const std::exception& e) {
+            signalManager->emitSignal("consoleTextMR", QString("Error: %1").arg(e.what()));
+        }
+        catch (...) {
+            signalManager->emitSignal("consoleTextMR", "Unknown error occurred");
+        }
         
         // Delay to simulate MR acquisition
         QThread::msleep(500);

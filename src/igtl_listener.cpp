@@ -312,6 +312,22 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
      */
 
     try {
+        // Check if we have a valid connection
+        if (!clientServer || !clientServer->GetConnected()) {
+            signalManager->emitSignal("consoleTextIGTL", "ERROR: Not connected to OpenIGTLink server");
+            return;
+        }
+        
+        // Get image parameters
+        if (!param.contains("dtype") || !param.contains("dimension") || 
+            !param.contains("spacing") || !param.contains("name") || 
+            !param.contains("numberOfComponents") || !param.contains("endian") || 
+            !param.contains("matrix") || !param.contains("binary") || 
+            !param.contains("binaryOffset")) {
+            signalManager->emitSignal("consoleTextIGTL", "ERROR: Missing required image parameters");
+            return;
+        }
+        
         QString dtype = param["dtype"].toString();
         QVariantList dimensionVar = param["dimension"].toList();
         QVariantList spacingVar = param["spacing"].toList();
@@ -319,8 +335,16 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
         int numberOfComponents = param["numberOfComponents"].toInt();
         int endian = param["endian"].toInt();
         QVariantList matrixVar = param["matrix"].toList();
-        QVariantList binaryVar = param["binary"].toList();
+        //QVariantList binaryVar = param["binary"].toList();
+        QByteArray binary = param["binary"].toByteArray();
         QVariantList binaryOffsetVar = param["binaryOffset"].toList();
+        
+        // Validate dimensions
+        if (dimensionVar.size() != 3 || spacingVar.size() != 3 || matrixVar.size() != 16) {
+            signalManager->emitSignal("consoleTextIGTL", QString("ERROR: Invalid array sizes - dimensions: %1, spacing: %2, matrix: %3")
+                .arg(dimensionVar.size()).arg(spacingVar.size()).arg(matrixVar.size()));
+            return;
+        }
         
         // Convert variant lists to native types
         std::vector<int> dimension = {
@@ -328,67 +352,126 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
             dimensionVar[1].toInt(),
             dimensionVar[2].toInt()
         };
+
+        signalManager->emitSignal("consoleTextIGTL", QString("dimensions = [%1, %2, %3]").arg(dimension[0]).arg(dimension[1]).arg(dimension[2]));
         
         std::vector<float> spacing = {
             spacingVar[0].toFloat(),
             spacingVar[1].toFloat(),
             spacingVar[2].toFloat()
         };
-        
+
+        signalManager->emitSignal("consoleTextIGTL", QString("spacing = [%1, %2, %3]").arg(spacing[0]).arg(spacing[1]).arg(spacing[2]));
+
         igtl::Matrix4x4 matrix;
         for (int i = 0; i < 4; i++) {
-            QVariantList row = matrixVar[i].toList();
+            //QVariantList row = matrixVar[i].toList();
+            //if (row.size() != 16) {
+            //    signalManager->emitSignal("consoleTextIGTL",
+            //              QString("ERROR: Matrix row %1 has wrong size: %2").arg(i).arg(row.size()));
+            //    return;
+            //}
             for (int j = 0; j < 4; j++) {
-                matrix[i][j] = row[j].toFloat();
+                matrix[i][j] = matrixVar[i*4+j].toFloat();
             }
         }
-        
-        std::vector<QByteArray> binary;
-        for (const QVariant& var : binaryVar) {
-            binary.push_back(var.toByteArray());
-        }
-        
+
+        signalManager->emitSignal("consoleTextIGTL", QString("matrix = [%1, %2, %3, %4]").arg(matrix[0][0]).arg(matrix[0][1]).arg(matrix[0][2]).arg(matrix[0][3]));
+        signalManager->emitSignal("consoleTextIGTL", QString("matrix = [%1, %2, %3, %4]").arg(matrix[1][0]).arg(matrix[1][1]).arg(matrix[1][2]).arg(matrix[1][3]));
+        signalManager->emitSignal("consoleTextIGTL", QString("matrix = [%1, %2, %3, %4]").arg(matrix[2][0]).arg(matrix[2][1]).arg(matrix[2][2]).arg(matrix[2][3]));
+        signalManager->emitSignal("consoleTextIGTL", QString("matrix = [%1, %2, %3, %4]").arg(matrix[3][0]).arg(matrix[3][1]).arg(matrix[3][2]).arg(matrix[3][3]));
+
+        //std::vector<QByteArray> binary;
+        //for (const QVariant& var : binaryVar) {
+        //    binary.push_back(var.toByteArray());
+        //}
+
         std::vector<int> binaryOffset;
         for (const QVariant& var : binaryOffsetVar) {
             binaryOffset.push_back(var.toInt());
         }
-        
+
         // Optional parameters
         QVariantMap attribute;
         if (param.contains("attribute")) {
             attribute = param["attribute"].toMap();
         }
-        
+
         QVariant timestamp;
         if (param.contains("timestamp")) {
             timestamp = param["timestamp"];
         }
-        
-        // Create and send the image message
+
+        signalManager->emitSignal("consoleTextIGTL", "Creating image message...");
+
+        // Create the image message
         igtl::ImageMessage::Pointer imageMsg = igtl::ImageMessage::New();
         imageMsg->SetDimensions(dimension[0], dimension[1], dimension[2]);
-        
+
         if (DataTypeTable.find(dtype.toStdString()) != DataTypeTable.end()) {
             const auto& typeInfo = DataTypeTable[dtype.toStdString()];
             imageMsg->SetScalarType(typeInfo[0]);
+        } else {
+            signalManager->emitSignal("consoleTextIGTL", QString("ERROR: Invalid data type: %1").arg(dtype));
+            return;
         }
-        
+
+        signalManager->emitSignal("consoleTextIGTL", QString("name = %1").arg(name.toStdString().c_str()));
+        signalManager->emitSignal("consoleTextIGTL", QString("number of components = %1").arg(numberOfComponents));
+        signalManager->emitSignal("consoleTextIGTL", QString("endian = %1").arg(endian));
+
         imageMsg->SetDeviceName(name.toStdString());
         imageMsg->SetNumComponents(numberOfComponents);
         imageMsg->SetEndian(endian); // little is 2, big is 1
-        imageMsg->AllocateScalars();
+        imageMsg->SetSpacing(spacing[0], spacing[1], spacing[2]);
+
         
-        // Copy the binary data
-        for (size_t i = 0; i < binary.size(); i++) {
-            void* dest = static_cast<void*>(static_cast<char*>(imageMsg->GetScalarPointer()) + binaryOffset[i]);
-            std::memcpy(dest, binary[i].constData(), binary[i].size());
+        // Debug info
+        signalManager->emitSignal("consoleTextIGTL", QString("Image size: %1x%2x%3")
+                      .arg(dimension[0]).arg(dimension[1]).arg(dimension[2]));
+                      
+        // Debug the matrix values
+        for (int i = 0; i < 4; i++) {
+            QString rowStr = "Matrix row " + QString::number(i) + ": ";
+            for (int j = 0; j < 4; j++) {
+                rowStr += QString::number(matrix[i][j]) + " ";
+            }
+            signalManager->emitSignal("consoleTextIGTL", rowStr);
         }
-        
+
+        // Set spacing and matrix
+        signalManager->emitSignal("consoleTextIGTL", "Setting spacing and matrix...");
         imageMsg->SetSpacing(spacing[0], spacing[1], spacing[2]);
         imageMsg->SetMatrix(matrix);
-        imageMsg->Pack();
+
+        // Allocate memory for the image
+        signalManager->emitSignal("consoleTextIGTL", "Allocating scalars...");
+        imageMsg->AllocateScalars();
+
+        // Copy the binary data
+        signalManager->emitSignal("consoleTextIGTL", "Copying binary data...");
+        if (binary.size() > 0) {
+          void* dest = static_cast<void*>(static_cast<char*>(imageMsg->GetScalarPointer()) + binaryOffset[0]);
+          //int dataSize = binary[0].size();
+          int dataSize = binary.size();
+          std::cerr << "dataSize = " << dataSize << std::endl;
+          if (dataSize > 0) {
+            //std::memcpy(dest, binary[0].constData(), dataSize);
+          }
+        }
         
-        clientServer->Send(imageMsg->GetPackPointer(), imageMsg->GetPackSize());
+        // Pack the message
+        signalManager->emitSignal("consoleTextIGTL", "Packing message...");
+        imageMsg->Pack();
+
+        // Send the message
+        signalManager->emitSignal("consoleTextIGTL", "Sending message...");
+        int r = clientServer->Send(imageMsg->GetPackPointer(), imageMsg->GetPackSize());
+        if (r == 0) {
+            signalManager->emitSignal("consoleTextIGTL", "Image sent successfully");
+        } else {
+            signalManager->emitSignal("consoleTextIGTL", "Failed to send image");
+        }
         
         // Send a separate timestamp message if needed
         if (parameter["sendTimestamp"].toInt() == 1 && param.contains("timestamp")) {
@@ -400,6 +483,8 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
         }
     } catch (const std::exception& e) {
         signalManager->emitSignal("consoleTextIGTL", QString("ERROR: %1").arg(e.what()));
+    } catch (...) {
+        signalManager->emitSignal("consoleTextIGTL", "ERROR: Unknown exception in sendImageIGTL");
     }
 }
 
