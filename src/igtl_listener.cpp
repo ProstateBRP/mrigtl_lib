@@ -296,7 +296,7 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
      *  param['attribute']   : Dictionary to pass miscellaneous attributes (OPTIONAL)
      *  param['binary']      : Binary array
      *  param['binaryOffset']: Offset to the binary array.
-     *  param['timestamp']   : Timestamp (OPTIONAL)
+     *  param['timestamp']   : Timestamp in QDateTime (OPTIONAL)
      */
 
     try {
@@ -369,9 +369,9 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
             attribute = param["attribute"].toMap();
         }
 
-        QVariant timestamp;
+        QDateTime timestamp;
         if (param.contains("timestamp")) {
-            timestamp = param["timestamp"];
+            timestamp = param["timestamp"].toDateTime();
         }
 
         signalManager->emitSignal("consoleTextIGTL", "Creating image message...");
@@ -446,9 +446,12 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
         
         // Send a separate timestamp message if needed
         if (parameter["sendTimestamp"].toInt() == 1 && param.contains("timestamp")) {
+            // Convert timestamp to string
+            qint64 ms = timestamp.currentMSecsSinceEpoch();
+            std::string timestampStr = std::to_string(ms/1000) + "." + std::to_string(ms%1000);
             igtl::StringMessage::Pointer textMsg = igtl::StringMessage::New();
             textMsg->SetDeviceName("IMAGE_TIMESTAMP");
-            textMsg->SetString(timestamp.toString().toStdString());
+            textMsg->SetString(timestampStr);
             textMsg->Pack();
             clientServer->Send(textMsg->GetPackPointer(), textMsg->GetPackSize());
         }

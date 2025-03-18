@@ -124,7 +124,7 @@ void MRSimListener::process() {
             imageParam["binaryOffset"] = 0;
             
             // Add timestamp
-            imageParam["timestamp"] = QDateTime::currentDateTime().toString(Qt::ISODate);
+            imageParam["timestamp"] = QDateTime::currentDateTime();
             
             // Debug output
             signalManager->emitSignal("consoleTextMR", "Sending test image...");
