@@ -85,8 +85,10 @@ void MRSimListener::process() {
             
             imageParam["name"] = "TestImage";
             imageParam["numberOfComponents"] = 1;
-            imageParam["endian"] = 2; // little endian
-            
+            int n = 1; // for checking endianness:
+
+            imageParam["endian"] = (*(char *)&n == 1)? 2 : 1; // 1 if little endian
+
             // Default identity matrix
             QVariantList matrix;
             QVariantList row1, row2, row3, row4;
@@ -119,9 +121,7 @@ void MRSimListener::process() {
             imageParam["binary"] = imgData;
 
             // Set binary offset
-            QVariantList binaryOffset;
-            binaryOffset.append(0);
-            imageParam["binaryOffset"] = binaryOffset;
+            imageParam["binaryOffset"] = 0;
             
             // Add timestamp
             imageParam["timestamp"] = QDateTime::currentDateTime().toString(Qt::ISODate);

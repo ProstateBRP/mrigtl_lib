@@ -306,8 +306,8 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
      *  param['endian']      : Endian used in the binary data. 1: big; 2: little
      *  param['matrix']      : 4x4 transformation matrix to map the pixel to the physical space.
      *  param['attribute']   : Dictionary to pass miscellaneous attributes (OPTIONAL)
-     *  param['binary']      : List of binary arrays.
-     *  param['binaryOffset']: Offset to each binary array.
+     *  param['binary']      : Binary array
+     *  param['binaryOffset']: Offset to the binary array.
      *  param['timestamp']   : Timestamp (OPTIONAL)
      */
 
@@ -337,7 +337,7 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
         QVariantList matrixVar = param["matrix"].toList();
         //QVariantList binaryVar = param["binary"].toList();
         QByteArray binary = param["binary"].toByteArray();
-        QVariantList binaryOffsetVar = param["binaryOffset"].toList();
+        int binaryOffset = param["binaryOffset"].toInt();
         
         // Validate dimensions
         if (dimensionVar.size() != 3 || spacingVar.size() != 3 || matrixVar.size() != 16) {
@@ -365,12 +365,6 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
 
         igtl::Matrix4x4 matrix;
         for (int i = 0; i < 4; i++) {
-            //QVariantList row = matrixVar[i].toList();
-            //if (row.size() != 16) {
-            //    signalManager->emitSignal("consoleTextIGTL",
-            //              QString("ERROR: Matrix row %1 has wrong size: %2").arg(i).arg(row.size()));
-            //    return;
-            //}
             for (int j = 0; j < 4; j++) {
                 matrix[i][j] = matrixVar[i*4+j].toFloat();
             }
@@ -380,16 +374,6 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
         signalManager->emitSignal("consoleTextIGTL", QString("matrix = [%1, %2, %3, %4]").arg(matrix[1][0]).arg(matrix[1][1]).arg(matrix[1][2]).arg(matrix[1][3]));
         signalManager->emitSignal("consoleTextIGTL", QString("matrix = [%1, %2, %3, %4]").arg(matrix[2][0]).arg(matrix[2][1]).arg(matrix[2][2]).arg(matrix[2][3]));
         signalManager->emitSignal("consoleTextIGTL", QString("matrix = [%1, %2, %3, %4]").arg(matrix[3][0]).arg(matrix[3][1]).arg(matrix[3][2]).arg(matrix[3][3]));
-
-        //std::vector<QByteArray> binary;
-        //for (const QVariant& var : binaryVar) {
-        //    binary.push_back(var.toByteArray());
-        //}
-
-        std::vector<int> binaryOffset;
-        for (const QVariant& var : binaryOffsetVar) {
-            binaryOffset.push_back(var.toInt());
-        }
 
         // Optional parameters
         QVariantMap attribute;
@@ -425,7 +409,6 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
         imageMsg->SetEndian(endian); // little is 2, big is 1
         imageMsg->SetSpacing(spacing[0], spacing[1], spacing[2]);
 
-        
         // Debug info
         signalManager->emitSignal("consoleTextIGTL", QString("Image size: %1x%2x%3")
                       .arg(dimension[0]).arg(dimension[1]).arg(dimension[2]));
@@ -451,12 +434,12 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
         // Copy the binary data
         signalManager->emitSignal("consoleTextIGTL", "Copying binary data...");
         if (binary.size() > 0) {
-          void* dest = static_cast<void*>(static_cast<char*>(imageMsg->GetScalarPointer()) + binaryOffset[0]);
+          void* dest = static_cast<void*>(static_cast<char*>(imageMsg->GetScalarPointer()) + binaryOffset);
           //int dataSize = binary[0].size();
           int dataSize = binary.size();
           std::cerr << "dataSize = " << dataSize << std::endl;
           if (dataSize > 0) {
-            //std::memcpy(dest, binary[0].constData(), dataSize);
+              std::memcpy(dest, binary.constData(), dataSize);
           }
         }
         
