@@ -271,18 +271,6 @@ void IGTLListener::disconnectOpenIGTEvent() {
     // Send explicit disconnection message to the server
     if (clientServer && clientServer->GetConnected()) {
         try {
-            // Create a string message to indicate disconnection
-            igtl::StringMessage::Pointer disconnectMsg = igtl::StringMessage::New();
-            disconnectMsg->SetDeviceName("DISCONNECT");
-            disconnectMsg->SetString("CLIENT_DISCONNECTING");
-            disconnectMsg->Pack();
-            
-            // Send the message
-            clientServer->Send(disconnectMsg->GetPackPointer(), disconnectMsg->GetPackSize());
-            
-            signalManager->emitSignal("consoleTextIGTL", "Sent disconnection notification to server");
-            
-            // Close the socket explicitly
             clientServer->CloseSocket();
         } catch (const std::exception& e) {
             signalManager->emitSignal("consoleTextIGTL", QString("Error sending disconnect message: %1").arg(e.what()));
