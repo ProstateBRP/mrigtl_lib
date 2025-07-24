@@ -10,14 +10,23 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # Force disable compiler predefines in MOC
 set(CMAKE_AUTOMOC_COMPILER_PREDEFINES OFF)
 
-# Configure Qt automated tools
+# Re-enable Qt automated tools
 set(CMAKE_AUTOMOC TRUE)
 set(CMAKE_AUTORCC TRUE)
 set(CMAKE_AUTOUIC TRUE)
-# set(CMAKE_AUTOMOC_CROSS_CONFIG OFF)
 
-# Find required packages
-find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
+# Find required packages - CMake 3.29.3 should work fine with Qt6
+find_package(Qt6 COMPONENTS Core Widgets QUIET)
+if(Qt6_FOUND)
+    set(QT_VERSION_MAJOR 6)
+    message(STATUS "Using Qt6 with CMake 3.29.3")
+    # Re-enable qt_standard_project_setup() since CMake version is sufficient
+    qt_standard_project_setup()
+else()
+    find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
+    set(QT_VERSION_MAJOR 5)
+    message(STATUS "Falling back to Qt5")
+endif()
 find_package(OpenIGTLink REQUIRED)
 
 # Include directories
@@ -74,18 +83,34 @@ set_target_properties(${PROJECT_NAME}_static PROPERTIES
 )
 
 # Link libraries to shared library
-target_link_libraries(${PROJECT_NAME}_shared
-    Qt5::Core
-    Qt5::Widgets
-    ${OpenIGTLink_LIBRARIES}
-)
+if(QT_VERSION_MAJOR EQUAL 6)
+    target_link_libraries(${PROJECT_NAME}_shared
+        Qt6::Core
+        Qt6::Widgets
+        ${OpenIGTLink_LIBRARIES}
+    )
+else()
+    target_link_libraries(${PROJECT_NAME}_shared
+        Qt5::Core
+        Qt5::Widgets
+        ${OpenIGTLink_LIBRARIES}
+    )
+endif()
 
 # Link libraries to static library
-target_link_libraries(${PROJECT_NAME}_static
-    Qt5::Core
-    Qt5::Widgets
-    ${OpenIGTLink_LIBRARIES}
-)
+if(QT_VERSION_MAJOR EQUAL 6)
+    target_link_libraries(${PROJECT_NAME}_static
+        Qt6::Core
+        Qt6::Widgets
+        ${OpenIGTLink_LIBRARIES}
+    )
+else()
+    target_link_libraries(${PROJECT_NAME}_static
+        Qt5::Core
+        Qt5::Widgets
+        ${OpenIGTLink_LIBRARIES}
+    )
+endif()
 
 # Create executable that uses the shared library
 add_executable(${PROJECT_NAME}_exe ${EXE_SOURCES})
@@ -121,6 +146,39 @@ install(EXPORT ${PROJECT_NAME}Targets
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
+# Export targets for build tree
+export(EXPORT ${PROJECT_NAME}Targets
+    FILE ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake
+    NAMESPACE ${PROJECT_NAME}::
+)
+
+## Copy the Usemrigtlbridge_cpp.cmake file to the binary tree for backward compatability.
+#CONFIGURE_FILE(${mrigtlbridge_cpp_SOURCE_DIR}/Usemrigtlbridge_cpp.cmake.in
+#  ${mrigtlbridge_cpp_BINARY_DIR}/Usemrigtlbridge_cpp.cmake COPYONLY IMMEDIATE)
+#
+## Create the OpenIGTLinkConfig.cmake file containing the OpenIGTLink configuration.
+#INCLUDE(${mrigtlbridge_cpp_SOURCE_DIR}/cmake/generate_mrigtlbridge_cpp_config.cmake)
+
+## Configure and install CMake package config file
+#include(CMakePackageConfigHelpers)
+#configure_package_config_file(
+#    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in
+#    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+#    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+#)
+
+#write_basic_package_version_file(
+#    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+#    VERSION ${PROJECT_VERSION}
+#    COMPATIBILITY SameMajorVersion
+#)
+
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+)
+
 # Configure and install CMake package config file
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
@@ -135,8 +193,3 @@ write_basic_package_version_file(
     COMPATIBILITY SameMajorVersion
 )
 
-install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-)

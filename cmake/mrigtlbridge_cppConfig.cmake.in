@@ -2,9 +2,26 @@
 
 include(CMakeFindDependencyMacro)
 
+# Set source and binary directories for backwards compatibility
+set(mrigtlbridge_cpp_SOURCE_DIR "@CMAKE_CURRENT_SOURCE_DIR@")
+set(mrigtlbridge_cpp_BINARY_DIR "@CMAKE_CURRENT_BINARY_DIR@")
+
+# Store the OpenIGTLink directory that was used during build
+set(OpenIGTLink_DIR "@OpenIGTLink_DIR@")
+
 # Find dependencies
-find_dependency(Qt5 COMPONENTS Core Widgets REQUIRED)
-find_dependency(OpenIGTLink REQUIRED)
+# Try Qt6 first, then fallback to Qt5
+find_dependency(Qt6 COMPONENTS Core Widgets QUIET)
+if(NOT Qt6_FOUND)
+    find_dependency(Qt5 COMPONENTS Core Widgets REQUIRED)
+endif()
+
+# Find OpenIGTLink with the path that was used during build
+if(OpenIGTLink_DIR)
+    find_dependency(OpenIGTLink REQUIRED PATHS ${OpenIGTLink_DIR} NO_DEFAULT_PATH)
+else()
+    find_dependency(OpenIGTLink REQUIRED)
+endif()
 
 # Include targets file
 include("${CMAKE_CURRENT_LIST_DIR}/mrigtlbridge_cppTargets.cmake")
