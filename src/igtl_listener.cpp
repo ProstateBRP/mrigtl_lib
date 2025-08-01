@@ -69,8 +69,10 @@ bool IGTLListener::initialize() {
     // Reset timing variables
     prevImgTime = 0.0;
     prevTransMsgTime = 0.0;
-    minTransMsgInterval = 0.1; // 10 Hz
+    //minTransMsgInterval = 0.1; // 10 Hz
+    processTimeout = minTransMsgInterval * 1000; // Convert to milliseconds
     pendingTransMsg = false;
+
 
     QString socketIP = parameter["ip"].toString();
     int socketPort = parameter["port"].toString().toInt();
@@ -79,7 +81,6 @@ bool IGTLListener::initialize() {
 }
 
 void IGTLListener::process() {
-    minTransMsgInterval = 0.1; // 100ms
 
     // Initialize receive buffer
     igtl::MessageBase::Pointer headerMsg = igtl::MessageBase::New();
@@ -159,14 +160,14 @@ void IGTLListener::process() {
         // Handle POINT messages if needed
     }
 
-    double endTime = QTime::currentTime().msecsSinceStartOfDay() / 1000.0;
-    double sleepTime = minTransMsgInterval - (endTime - msgTime);
-    qDebug() << "sleep time =" << sleepTime;
-    if (sleepTime < 0) {
-        sleepTime = 0;
-    }
+    //double endTime = QTime::currentTime().msecsSinceStartOfDay() / 1000.0;
+    //double sleepTime = minTransMsgInterval - (endTime - msgTime);
+    //qDebug() << "sleep time =" << sleepTime;
+    //if (sleepTime < 0) {
+    //    sleepTime = 0;
+    //}
 
-    QThread::msleep(static_cast<unsigned long>(1000.0 * sleepTime));
+    //QThread::msleep(static_cast<unsigned long>(1000.0 * sleepTime));
 }
 
 void IGTLListener::finalize() {

@@ -37,9 +37,11 @@ private slots:
     void onStopSequence();
     void onUpdateScanPlane(const QVariantMap& param);
 
+protected slots:
+    void process() override;
+
 protected:
     bool initialize() override;
-    void process() override;
     void finalize() override;
 
 private:

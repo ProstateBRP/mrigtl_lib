@@ -18,6 +18,7 @@
 #include <QMap>
 #include <QString>
 #include <QVariant>
+#include <QTimer>
 #include <memory>
 #include <atomic>
 
@@ -47,6 +48,21 @@ public:
     // Map of custom signals that will be registered with signal manager
     QMap<QString, QString> customSignalList;
 
+    void setProcessTimeout(time_t timeout) {
+        processTimeout = timeout;
+        if (processTimer) {
+            processTimer->setInterval(processTimeout);
+        }
+    }
+
+    // Get current parameters
+    QVariantMap getParameters() const { return parameter; }
+
+protected slots:
+    // Main processing function driven by a timer (to be implemented by subclasses)
+    virtual void process();
+
+
 protected:
     // Main thread function (override from QThread)
     void run() override;
@@ -54,15 +70,15 @@ protected:
     // Initialize the listener (to be implemented by subclasses)
     virtual bool initialize();
 
-    // Main processing function (to be implemented by subclasses)
-    virtual void process();
-
     // Finalize when thread stops (to be implemented by subclasses)
     virtual void finalize();
 
     std::atomic<bool> threadActive;
     SignalManager* signalManager;
     QVariantMap parameter;
+    QTimer* processTimer = nullptr;
+    time_t processTimeout = 50; // Default processing interval in milliseconds
+
 };
 
 } // namespace mrigtlbridge

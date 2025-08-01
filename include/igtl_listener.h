@@ -50,9 +50,11 @@ private slots:
     void sendImageIGTL(const QVariantMap& param);
     void sendTrackingDataIGTL(const QVariantMap& param);
 
+protected slots:
+    void process() override;
+
 protected:
     bool initialize() override;
-    void process() override;
     void finalize() override;
 
 private:

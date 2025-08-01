@@ -64,19 +64,26 @@ void ListenerBase::stop() {
 
 void ListenerBase::run() {
     // Note: metaObject()->className() gives the name of the subclass, not this base class
-    
+    processTimer = new QTimer(this);
+
     if (initialize()) {
         // Initialization was successful. Start the main loop
         signalManager->emitSignal("listenerConnected", metaObject()->className());
         threadActive = true;
-        while (threadActive) {
-            process();
-        }
+
+        connect(processTimer, SIGNAL(timeout()), this, SLOT(process()));
+        processTimer->start(processTimeout); // Process every 100 ms
+        exec();
+
+        //while (threadActive) {
+        //    process();
+        //}
     } else {
         signalManager->emitSignal("listenerDisconnected", metaObject()->className());
     }
 
     finalize();
+    processTimer = nullptr;
     signalManager->emitSignal("listenerDisconnected", metaObject()->className());
     quit();
 }

@@ -139,12 +139,8 @@ void MRSimListener::process() {
             signalManager->emitSignal("consoleTextMR", "Unknown error occurred");
         }
         
-        // Delay to simulate MR acquisition
-        QThread::msleep(500);
-    } else {
-        // Sleep to avoid busy waiting
-        QThread::msleep(100);
     }
+
 }
 
 void MRSimListener::finalize() {
