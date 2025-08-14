@@ -324,9 +324,11 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
         int numberOfComponents = param["numberOfComponents"].toInt();
         int endian = param["endian"].toInt();
         QVariantList matrixVar = param["matrix"].toList();
-        //QVariantList binaryVar = param["binary"].toList();
-        QByteArray binary = param["binary"].toByteArray();
-        int binaryOffset = param["binaryOffset"].toInt();
+        QVariantList binaryList = param["binary"].toList();
+        QVariantList binaryOffsetList = param["binaryOffset"].toList();
+
+        //QByteArray binary = param["binary"].toByteArray();
+        //int binaryOffset = param["binaryOffset"].toInt();
         
         // Validate dimensions
         if (dimensionVar.size() != 3 || spacingVar.size() != 3 || matrixVar.size() != 16) {
@@ -381,9 +383,11 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
         igtl::ImageMessage::Pointer imageMsg = igtl::ImageMessage::New();
         imageMsg->SetDimensions(dimension[0], dimension[1], dimension[2]);
 
+        int pixelSize = 0;
         if (DataTypeTable.find(dtype.toStdString()) != DataTypeTable.end()) {
             const auto& typeInfo = DataTypeTable[dtype.toStdString()];
             imageMsg->SetScalarType(typeInfo[0]);
+            pixelSize = typeInfo[1];
         } else {
             signalManager->emitSignal("consoleTextIGTL", QString("ERROR: Invalid data type: %1").arg(dtype));
             return;
@@ -422,16 +426,16 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
 
         // Copy the binary data
         signalManager->emitSignal("consoleTextIGTL", "Copying binary data...");
-        if (binary.size() > 0) {
-          void* dest = static_cast<void*>(static_cast<char*>(imageMsg->GetScalarPointer()) + binaryOffset);
-          //int dataSize = binary[0].size();
-          int dataSize = binary.size();
-          std::cerr << "dataSize = " << dataSize << std::endl;
-          if (dataSize > 0) {
-              std::memcpy(dest, binary.constData(), dataSize);
-          }
+        for (int i = 0; i < binaryList.size(); i++) {
+          int offset = binaryOffsetList[i].toInt();
+          void* dest = static_cast<void*>(static_cast<char*>(imageMsg->GetScalarPointer()) + offset);
+          void* src = static_cast<void*>(binaryList[i].toByteArray().data());
+          //int dataSize = binaryList[i].toByteArray().size();
+          int dataSize = dimension[0] * dimension[1] * dimension[2] * pixelSize * numberOfComponents;
+          std::cerr << "dataSize = " << dataSize << ", offset = " << offset << std::endl;
+          std::memcpy(dest, src, dataSize);
         }
-        
+
         // Pack the message
         signalManager->emitSignal("consoleTextIGTL", "Packing message...");
         imageMsg->Pack();
@@ -439,7 +443,7 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
         // Send the message
         signalManager->emitSignal("consoleTextIGTL", "Sending message...");
         int r = clientServer->Send(imageMsg->GetPackPointer(), imageMsg->GetPackSize());
-        if (r == 0) {
+        if (r > 0) {
             signalManager->emitSignal("consoleTextIGTL", "Image sent successfully");
         } else {
             signalManager->emitSignal("consoleTextIGTL", "Failed to send image");
