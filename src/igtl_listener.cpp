@@ -430,9 +430,7 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
           int offset = binaryOffsetList[i].toInt();
           void* dest = static_cast<void*>(static_cast<char*>(imageMsg->GetScalarPointer()) + offset);
           void* src = static_cast<void*>(binaryList[i].toByteArray().data());
-          //int dataSize = binaryList[i].toByteArray().size();
           int dataSize = dimension[0] * dimension[1] * dimension[2] * pixelSize * numberOfComponents;
-          std::cerr << "dataSize = " << dataSize << ", offset = " << offset << std::endl;
           std::memcpy(dest, src, dataSize);
         }
 

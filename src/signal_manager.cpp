@@ -127,7 +127,7 @@ bool SignalManager::emitSignal(const QString& name, const QVariant& param) {
     if (signalMap.contains(name)) {
         return signalMap[name]->emitSignal(param);
     } else {
-        qDebug() << "Error in emitting signal: Signal not found";
+        qWarning() << "Error in emitting signal: Signal not found";
         return false;
     }
 }
