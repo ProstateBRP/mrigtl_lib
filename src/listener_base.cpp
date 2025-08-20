@@ -64,7 +64,8 @@ void ListenerBase::stop() {
 
 void ListenerBase::run() {
     // Note: metaObject()->className() gives the name of the subclass, not this base class
-    processTimer = new QTimer(this);
+    // Create timer without parent to avoid Qt threading violations
+    processTimer = new QTimer(nullptr);
 
     if (initialize()) {
         // Initialization was successful. Start the main loop
@@ -83,7 +84,14 @@ void ListenerBase::run() {
     }
 
     finalize();
-    processTimer = nullptr;
+    
+    // Clean up timer manually since it doesn't have a parent
+    if (processTimer) {
+        processTimer->stop();
+        delete processTimer;
+        processTimer = nullptr;
+    }
+    
     signalManager->emitSignal("listenerDisconnected", metaObject()->className());
     quit();
 }
