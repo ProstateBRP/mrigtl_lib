@@ -48,18 +48,23 @@ void ListenerBase::disconnectSlots() {
 }
 
 void ListenerBase::stop() {
+    qDebug() << "ListenerBase::stop() - Stopping thread" << metaObject()->className();
     threadActive = false;
     
-    // Wait for the thread to finish (with timeout)
+    // First, quit the event loop gracefully
     if (isRunning()) {
-        if (!wait(1000)) { // Wait for 1 second
+        quit();
+        
+        // Wait for the thread to finish (with timeout)
+        if (!wait(2000)) { // Wait for 2 seconds
+            qDebug() << "ListenerBase::stop() - Thread did not finish gracefully, terminating";
             // If the thread doesn't finish within the timeout, terminate it
             terminate();
             wait();
+        } else {
+            qDebug() << "ListenerBase::stop() - Thread finished gracefully";
         }
     }
-    
-    quit();
 }
 
 void ListenerBase::run() {
@@ -92,8 +97,12 @@ void ListenerBase::run() {
         processTimer = nullptr;
     }
     
-    signalManager->emitSignal("listenerDisconnected", metaObject()->className());
+    // Ensure event loop stops completely
     quit();
+    
+    if (signalManager) {
+        signalManager->emitSignal("listenerDisconnected", metaObject()->className());
+    }
 }
 
 bool ListenerBase::initialize() {

@@ -164,8 +164,8 @@ void IGTLWidget::onDisconnectButtonClicked() {
 }
 
 void IGTLWidget::onConsoleTextReceived(const QString& text) {
-    QString timestamp = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
-    openIGTConsole->append(QString("[%1] %2").arg(timestamp, text));
+    //QString timestamp = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+    //openIGTConsole->append(QString("[%1] %2").arg(timestamp, text));
 }
 
 void IGTLWidget::setSignalManager(SignalManager* sm) {
