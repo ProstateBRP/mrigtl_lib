@@ -344,7 +344,7 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
             dimensionVar[2].toInt()
         };
 
-        signalManager->emitSignal("consoleTextIGTL", QString("dimensions = [%1, %2, %3]").arg(dimension[0]).arg(dimension[1]).arg(dimension[2]));
+        // Debug: dimensions logged
         
         std::vector<float> spacing = {
             spacingVar[0].toFloat(),
@@ -352,7 +352,7 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
             spacingVar[2].toFloat()
         };
 
-        signalManager->emitSignal("consoleTextIGTL", QString("spacing = [%1, %2, %3]").arg(spacing[0]).arg(spacing[1]).arg(spacing[2]));
+        // Debug: spacing logged
 
         igtl::Matrix4x4 matrix;
         for (int i = 0; i < 4; i++) {
@@ -361,10 +361,7 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
             }
         }
 
-        signalManager->emitSignal("consoleTextIGTL", QString("matrix = [%1, %2, %3, %4]").arg(matrix[0][0]).arg(matrix[0][1]).arg(matrix[0][2]).arg(matrix[0][3]));
-        signalManager->emitSignal("consoleTextIGTL", QString("matrix = [%1, %2, %3, %4]").arg(matrix[1][0]).arg(matrix[1][1]).arg(matrix[1][2]).arg(matrix[1][3]));
-        signalManager->emitSignal("consoleTextIGTL", QString("matrix = [%1, %2, %3, %4]").arg(matrix[2][0]).arg(matrix[2][1]).arg(matrix[2][2]).arg(matrix[2][3]));
-        signalManager->emitSignal("consoleTextIGTL", QString("matrix = [%1, %2, %3, %4]").arg(matrix[3][0]).arg(matrix[3][1]).arg(matrix[3][2]).arg(matrix[3][3]));
+        // Debug: matrix logged
 
         // Optional parameters
         QVariantMap attribute;
@@ -377,7 +374,7 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
             timestamp = param["timestamp"].toDateTime();
         }
 
-        signalManager->emitSignal("consoleTextIGTL", "Creating image message...");
+        // Debug: creating image message
 
         // Create the image message
         igtl::ImageMessage::Pointer imageMsg = igtl::ImageMessage::New();
@@ -393,39 +390,25 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
             return;
         }
 
-        signalManager->emitSignal("consoleTextIGTL", QString("name = %1").arg(name.toStdString().c_str()));
-        signalManager->emitSignal("consoleTextIGTL", QString("number of components = %1").arg(numberOfComponents));
-        signalManager->emitSignal("consoleTextIGTL", QString("endian = %1").arg(endian));
+        // Debug: image parameters logged
 
         imageMsg->SetDeviceName(name.toStdString());
         imageMsg->SetNumComponents(numberOfComponents);
         imageMsg->SetEndian(endian); // little is 2, big is 1
         imageMsg->SetSpacing(spacing[0], spacing[1], spacing[2]);
 
-        // Debug info
-        signalManager->emitSignal("consoleTextIGTL", QString("Image size: %1x%2x%3")
-                      .arg(dimension[0]).arg(dimension[1]).arg(dimension[2]));
+        // Debug: image size logged
                       
-        // Debug the matrix values
-        for (int i = 0; i < 4; i++) {
-            QString rowStr = "Matrix row " + QString::number(i) + ": ";
-            for (int j = 0; j < 4; j++) {
-                rowStr += QString::number(matrix[i][j]) + " ";
-            }
-            signalManager->emitSignal("consoleTextIGTL", rowStr);
-        }
+        // Debug: matrix values logged
 
         // Set spacing and matrix
-        signalManager->emitSignal("consoleTextIGTL", "Setting spacing and matrix...");
         imageMsg->SetSpacing(spacing[0], spacing[1], spacing[2]);
         imageMsg->SetMatrix(matrix);
 
         // Allocate memory for the image
-        signalManager->emitSignal("consoleTextIGTL", "Allocating scalars...");
         imageMsg->AllocateScalars();
 
         // Copy the binary data
-        signalManager->emitSignal("consoleTextIGTL", "Copying binary data...");
         for (int i = 0; i < binaryList.size(); i++) {
           int offset = binaryOffsetList[i].toInt();
           void* dest = static_cast<void*>(static_cast<char*>(imageMsg->GetScalarPointer()) + offset);
@@ -435,11 +418,9 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
         }
 
         // Pack the message
-        signalManager->emitSignal("consoleTextIGTL", "Packing message...");
         imageMsg->Pack();
 
         // Send the message
-        signalManager->emitSignal("consoleTextIGTL", "Sending message...");
         int r = clientServer->Send(imageMsg->GetPackPointer(), imageMsg->GetPackSize());
         if (r > 0) {
             signalManager->emitSignal("consoleTextIGTL", "Image sent successfully");
