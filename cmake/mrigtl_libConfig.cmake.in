@@ -3,8 +3,8 @@
 include(CMakeFindDependencyMacro)
 
 # Set source and binary directories for backwards compatibility
-set(mrigtlbridge_cpp_SOURCE_DIR "@CMAKE_CURRENT_SOURCE_DIR@")
-set(mrigtlbridge_cpp_BINARY_DIR "@CMAKE_CURRENT_BINARY_DIR@")
+set(mrigtl_lib_SOURCE_DIR "@CMAKE_CURRENT_SOURCE_DIR@")
+set(mrigtl_lib_BINARY_DIR "@CMAKE_CURRENT_BINARY_DIR@")
 
 # Store the OpenIGTLink directory that was used during build
 set(OpenIGTLink_DIR "@OpenIGTLink_DIR@")
@@ -24,4 +24,4 @@ else()
 endif()
 
 # Include targets file
-include("${CMAKE_CURRENT_LIST_DIR}/mrigtlbridge_cppTargets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/mrigtl_libTargets.cmake")

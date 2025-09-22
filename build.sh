@@ -41,6 +41,6 @@ done
 
 # Link everything together
 echo "Linking..."
-g++ -o mrigtlbridge_cpp *.o ${LD_FLAGS}
+g++ -o mrigtl_lib *.o ${LD_FLAGS}
 
 echo "Build complete\!"

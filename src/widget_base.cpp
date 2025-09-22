@@ -2,7 +2,7 @@
 
   Program:   mrigtlbridge
   Language:  C++
-  Web page:  https://github.com/ProstateBRP/mrigtlbridge_cpp
+  Web page:  https://github.com/ProstateBRP/mrigtl_lib
 
   Copyright (c) Brigham and Women's Hospital. All rights reserved.
 

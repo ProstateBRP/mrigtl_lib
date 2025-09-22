@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(mrigtlbridge_cpp VERSION 1.0.0)
+project(mrigtl_lib VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -154,12 +154,12 @@ export(EXPORT ${PROJECT_NAME}Targets
     NAMESPACE ${PROJECT_NAME}::
 )
 
-## Copy the Usemrigtlbridge_cpp.cmake file to the binary tree for backward compatability.
-#CONFIGURE_FILE(${mrigtlbridge_cpp_SOURCE_DIR}/Usemrigtlbridge_cpp.cmake.in
-#  ${mrigtlbridge_cpp_BINARY_DIR}/Usemrigtlbridge_cpp.cmake COPYONLY IMMEDIATE)
+## Copy the Usemrigtl_lib.cmake file to the binary tree for backward compatability.
+#CONFIGURE_FILE(${mrigtl_lib_SOURCE_DIR}/Usemrigtl_lib.cmake.in
+#  ${mrigtl_lib_BINARY_DIR}/Usemrigtl_lib.cmake COPYONLY IMMEDIATE)
 #
 ## Create the OpenIGTLinkConfig.cmake file containing the OpenIGTLink configuration.
-#INCLUDE(${mrigtlbridge_cpp_SOURCE_DIR}/cmake/generate_mrigtlbridge_cpp_config.cmake)
+#INCLUDE(${mrigtl_lib_SOURCE_DIR}/cmake/generate_mrigtl_lib_config.cmake)
 
 ## Configure and install CMake package config file
 #include(CMakePackageConfigHelpers)

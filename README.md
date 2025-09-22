@@ -35,16 +35,16 @@ make
 ```
 
 This will generate:
-- A shared library: `libmrigtlbridge_cpp.so` (Linux) or `libmrigtlbridge_cpp.dylib` (macOS)
-- A static library: `libmrigtlbridge_cpp_static.a`
-- An executable: `mrigtlbridge_cpp`
+- A shared library: `libmrigtl_lib.so` (Linux) or `libmrigtl_lib.dylib` (macOS)
+- A static library: `libmrigtl_lib_static.a`
+- An executable: `mrigtl_lib`
 
 ## Running
 
 From the build directory:
 
 ```bash
-./mrigtlbridge_cpp
+./mrigtl_lib
 ```
 
 ## Using the Library
@@ -55,11 +55,11 @@ To use the library in your own CMake project:
 
 ```cmake
 # Find the package
-find_package(mrigtlbridge_cpp REQUIRED)
+find_package(mrigtl_lib REQUIRED)
 
 # Link against the library
 target_link_libraries(your_target
-    mrigtlbridge_cpp::mrigtlbridge_cpp
+    mrigtl_lib::mrigtl_lib
 )
 ```
 
@@ -82,8 +82,8 @@ This will install:
 Basic usage:
 
 ```cpp
-#include <mrigtlbridge_cpp/signal_manager.h>
-#include <mrigtlbridge_cpp/mr_igtl_bridge_window.h>
+#include <mrigtl_lib/signal_manager.h>
+#include <mrigtl_lib/mr_igtl_bridge_window.h>
 
 int main(int argc, char** argv) {
     QApplication app(argc, argv);
