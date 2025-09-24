@@ -26,6 +26,14 @@ ListenerBase::ListenerBase(QObject* parent)
 
 ListenerBase::~ListenerBase() {
     qDebug() << "ListenerBase::~ListenerBase()";
+    
+    // CRITICAL FIX: Ensure thread is properly stopped before QThread destructor runs
+    // This prevents the "QThread: Destroyed while thread is still running" fatal error
+    if (isRunning()) {
+        qDebug() << "ListenerBase::~ListenerBase() - Thread still running, stopping it safely";
+        stop();  // This will call quit() and wait() to ensure proper termination
+    }
+    
     if (signalManager) {
         signalManager->emitSignal("listenerTerminated", metaObject()->className());
     }
