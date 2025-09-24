@@ -20,6 +20,10 @@
 #include <QString>
 #include <QVariant>
 #include <QMessageBox>
+#include <QTimer>
+#include <QMutex>
+#include <QQueue>
+#include <QTextEdit>
 #include <memory>
 
 namespace mrigtlbridge {
@@ -56,6 +60,7 @@ private slots:
     void onListenerConnected(const QString& className);
     void onListenerDisconnected(const QString& className);
     void onListenerTerminated(const QString& className);
+    void flushConsoleBuffer();
 
 protected:
     SignalManager* signalManager;
@@ -69,6 +74,17 @@ protected:
     
     // Signal list
     QStringList signalList;
+    
+    // Thread-safe console buffer (protected for derived classes)
+    void addConsoleMessage(QTextEdit* console, const QString& message);
+    
+private:
+    // Console buffer implementation
+    QQueue<QString> consoleBuffer;
+    QMutex consoleBufferMutex;
+    QTimer* consoleUpdateTimer;
+    QTextEdit* targetConsole;
+    static const int MAX_CONSOLE_BUFFER_SIZE = 1000;
 };
 
 } // namespace mrigtlbridge

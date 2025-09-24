@@ -24,7 +24,16 @@ namespace mrigtlbridge {
 WidgetBase::WidgetBase(QObject* parent)
     : QObject(parent),
       signalManager(nullptr),
-      listener(nullptr) {
+      listener(nullptr),
+      consoleUpdateTimer(nullptr),
+      targetConsole(nullptr) {
+      
+    // Initialize console update timer for thread-safe console updates
+    consoleUpdateTimer = new QTimer(this);
+    consoleUpdateTimer->setSingleShot(false);
+    consoleUpdateTimer->setInterval(100); // Update console every 100ms
+    connect(consoleUpdateTimer, &QTimer::timeout, this, &WidgetBase::flushConsoleBuffer);
+    consoleUpdateTimer->start();
 }
 
 WidgetBase::~WidgetBase() {
@@ -142,6 +151,33 @@ void WidgetBase::onListenerTerminated(const QString& className) {
     if (listener && listener->metaObject()->className() == className) {
         listener = nullptr;
         updateGUI("listenerDisconnected");
+    }
+}
+
+void WidgetBase::addConsoleMessage(QTextEdit* console, const QString& message) {
+    // Thread-safe: Add message to buffer instead of directly updating GUI
+    QMutexLocker locker(&consoleBufferMutex);
+    
+    // Set or update the target console
+    targetConsole = console;
+    
+    // Implement circular buffer behavior - remove oldest messages if buffer is full
+    while (consoleBuffer.size() >= MAX_CONSOLE_BUFFER_SIZE) {
+        consoleBuffer.dequeue();
+    }
+    
+    consoleBuffer.enqueue(message);
+}
+
+void WidgetBase::flushConsoleBuffer() {
+    // This runs on the main thread via timer, safe to update GUI
+    QMutexLocker locker(&consoleBufferMutex);
+    
+    if (targetConsole) {
+        while (!consoleBuffer.isEmpty()) {
+            QString message = consoleBuffer.dequeue();
+            targetConsole->append(message);
+        }
     }
 }
 
