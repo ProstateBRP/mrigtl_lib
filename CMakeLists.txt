@@ -58,6 +58,7 @@ set(EXE_SOURCES
 # Add header files
 set(HEADERS
     include/common.h
+    include/mrigtl_lib_export.h
     include/signal_manager.h
     include/signal_wrap.h
     include/listener_base.h
@@ -76,6 +77,9 @@ set_target_properties(${PROJECT_NAME}_shared PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
 )
+
+# Define export macro for Windows DLL
+target_compile_definitions(${PROJECT_NAME}_shared PRIVATE mrigtl_lib_shared_EXPORTS)
 
 # Create static library
 add_library(${PROJECT_NAME}_static STATIC ${LIB_SOURCES} ${HEADERS})

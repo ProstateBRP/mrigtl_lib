@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "mrigtl_lib_export.h"
 #include <QObject>
 #include <QThread>
 #include <QMap>
@@ -34,7 +35,7 @@ class SignalWrapVoid;
 class SignalWrapStr;
 class SignalWrapDict;
 
-class SignalManager : public QObject {
+class MRIGTL_LIB_EXPORT SignalManager : public QObject {
     Q_OBJECT
 
 public:
@@ -61,7 +62,7 @@ private:
     std::unique_ptr<SignalManagerProxy> signalManagerProxy;
 };
 
-class SignalManagerProxy : public QThread {
+class MRIGTL_LIB_EXPORT SignalManagerProxy : public QThread {
     Q_OBJECT
 
 public:

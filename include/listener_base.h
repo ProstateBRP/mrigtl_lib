@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "mrigtl_lib_export.h"
 #include <QThread>
 #include <QMap>
 #include <QString>
@@ -26,7 +27,7 @@ namespace mrigtlbridge {
 
 class SignalManager;
 
-class ListenerBase : public QThread {
+class MRIGTL_LIB_EXPORT ListenerBase : public QThread {
     Q_OBJECT
 
 public:

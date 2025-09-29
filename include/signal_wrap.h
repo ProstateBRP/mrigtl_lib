@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "mrigtl_lib_export.h"
 #include <QObject>
 #include <QString>
 #include <QVariant>
@@ -22,14 +23,14 @@
 namespace mrigtlbridge {
 
 // Base class for signal wrappers
-class SignalWrap : public QObject {
+class MRIGTL_LIB_EXPORT SignalWrap : public QObject {
 public:
     virtual bool emitSignal(const QVariant& param = QVariant()) = 0;
     QString paramType;
 };
 
 // Wrapper for signals with no parameters
-class SignalWrapVoid : public SignalWrap {
+class MRIGTL_LIB_EXPORT SignalWrapVoid : public SignalWrap {
     Q_OBJECT
 public:
     SignalWrapVoid() { paramType = ""; }
@@ -43,7 +44,7 @@ signals:
 };
 
 // Wrapper for signals with string parameter
-class SignalWrapStr : public SignalWrap {
+class MRIGTL_LIB_EXPORT SignalWrapStr : public SignalWrap {
     Q_OBJECT
 public:
     SignalWrapStr() { paramType = "str"; }
@@ -56,7 +57,7 @@ signals:
 };
 
 // Wrapper for signals with dictionary parameter
-class SignalWrapDict : public SignalWrap {
+class MRIGTL_LIB_EXPORT SignalWrapDict : public SignalWrap {
     Q_OBJECT
 public:
     SignalWrapDict() { paramType = "dict"; }

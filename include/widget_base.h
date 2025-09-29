@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "mrigtl_lib_export.h"
 #include <QObject>
 #include <QWidget>
 #include <QMap>
@@ -31,7 +32,7 @@ namespace mrigtlbridge {
 class SignalManager;
 class ListenerBase;
 
-class WidgetBase : public QObject {
+class MRIGTL_LIB_EXPORT WidgetBase : public QObject {
     Q_OBJECT
 
 public:
