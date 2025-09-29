@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "mrigtl_lib_export.h"
 #include <QWidget>
 #include <QString>
 #include <memory>
@@ -26,13 +27,13 @@ class MainWindow : public QWidget {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget* parent = nullptr);
-    ~MainWindow();
+    MRIGTL_LIB_EXPORT explicit MainWindow(QWidget* parent = nullptr);
+    MRIGTL_LIB_EXPORT ~MainWindow();
 
-    void setTitle(const QString& title);
-    void setLeftWidget(WidgetBase* widget);
-    void setRightWidget(WidgetBase* widget);
-    void setup();
+    MRIGTL_LIB_EXPORT void setTitle(const QString& title);
+    MRIGTL_LIB_EXPORT void setLeftWidget(WidgetBase* widget);
+    MRIGTL_LIB_EXPORT void setRightWidget(WidgetBase* widget);
+    MRIGTL_LIB_EXPORT void setup();
 
 private:
     WidgetBase* leftWidget;

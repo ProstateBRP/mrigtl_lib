@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "mrigtl_lib_export.h"
 #include "widget_base.h"
 #include <QLineEdit>
 #include <QPushButton>
@@ -27,12 +28,12 @@ class MRSimWidget : public WidgetBase {
     Q_OBJECT
 
 public:
-    explicit MRSimWidget(QObject* parent = nullptr);
-    ~MRSimWidget() override;
+    MRIGTL_LIB_EXPORT explicit MRSimWidget(QObject* parent = nullptr);
+    MRIGTL_LIB_EXPORT ~MRSimWidget() override;
 
-    void buildGUI(QWidget* parent) override;
-    void updateGUI(const QString& state) override;
-    void setSignalManager(SignalManager* sm) override;
+    MRIGTL_LIB_EXPORT void buildGUI(QWidget* parent) override;
+    MRIGTL_LIB_EXPORT void updateGUI(const QString& state) override;
+    MRIGTL_LIB_EXPORT void setSignalManager(SignalManager* sm) override;
 
 private slots:
     void onConnectButtonClicked();

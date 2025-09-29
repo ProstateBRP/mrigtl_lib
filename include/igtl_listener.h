@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "mrigtl_lib_export.h"
 #include "listener_base.h"
 #include <QMutex>
 #include <QVector>
@@ -33,11 +34,11 @@ class IGTLListener : public ListenerBase {
     Q_OBJECT
 
 public:
-    explicit IGTLListener(QObject* parent = nullptr);
-    ~IGTLListener() override;
+    MRIGTL_LIB_EXPORT explicit IGTLListener(QObject* parent = nullptr);
+    MRIGTL_LIB_EXPORT ~IGTLListener() override;
 
-    void connectSlots(SignalManager* signalManager) override;
-    void disconnectSlots() override;
+    MRIGTL_LIB_EXPORT void connectSlots(SignalManager* signalManager) override;
+    MRIGTL_LIB_EXPORT void disconnectSlots() override;
 
 signals:
     void closeSocketSignal();

@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "mrigtl_lib_export.h"
 #include "listener_base.h"
 #include <QVariant>
 #include <QMutex>
@@ -26,11 +27,11 @@ class MRSimListener : public ListenerBase {
     Q_OBJECT
 
 public:
-    explicit MRSimListener(QObject* parent = nullptr);
-    ~MRSimListener() override;
+    MRIGTL_LIB_EXPORT explicit MRSimListener(QObject* parent = nullptr);
+    MRIGTL_LIB_EXPORT ~MRSimListener() override;
 
-    void connectSlots(SignalManager* signalManager) override;
-    void disconnectSlots() override;
+    MRIGTL_LIB_EXPORT void connectSlots(SignalManager* signalManager) override;
+    MRIGTL_LIB_EXPORT void disconnectSlots() override;
 
 private slots:
     void onStartSequence();
