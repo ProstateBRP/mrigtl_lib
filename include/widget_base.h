@@ -77,7 +77,7 @@ protected:
     QStringList signalList;
     
     // Thread-safe console buffer (protected for derived classes)
-    void addConsoleMessage(QTextEdit* console, const QString& message);
+    MRIGTL_LIB_EXPORT void addConsoleMessage(QTextEdit* console, const QString& message);
     
 private:
     // Console buffer implementation

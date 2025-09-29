@@ -39,11 +39,11 @@ private slots:
     void onUpdateScanPlane(const QVariantMap& param);
 
 protected slots:
-    void process() override;
+    MRIGTL_LIB_EXPORT void process() override;
 
 protected:
-    bool initialize() override;
-    void finalize() override;
+    MRIGTL_LIB_EXPORT bool initialize() override;
+    MRIGTL_LIB_EXPORT void finalize() override;
 
 private:
     bool running;

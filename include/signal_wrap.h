@@ -34,7 +34,7 @@ class SignalWrapVoid : public SignalWrap {
     Q_OBJECT
 public:
     SignalWrapVoid() { paramType = ""; }
-    bool emitSignal(const QVariant& param = QVariant()) override {
+    MRIGTL_LIB_EXPORT bool emitSignal(const QVariant& param = QVariant()) override {
         Q_UNUSED(param);
         emit signal();
         return true;
@@ -48,7 +48,7 @@ class SignalWrapStr : public SignalWrap {
     Q_OBJECT
 public:
     SignalWrapStr() { paramType = "str"; }
-    bool emitSignal(const QVariant& param = QVariant()) override {
+    MRIGTL_LIB_EXPORT bool emitSignal(const QVariant& param = QVariant()) override {
         emit signal(param.toString());
         return true;
     }
@@ -61,7 +61,7 @@ class SignalWrapDict : public SignalWrap {
     Q_OBJECT
 public:
     SignalWrapDict() { paramType = "dict"; }
-    bool emitSignal(const QVariant& param = QVariant()) override {
+    MRIGTL_LIB_EXPORT bool emitSignal(const QVariant& param = QVariant()) override {
         emit signal(param.toMap());
         return true;
     }

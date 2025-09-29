@@ -61,18 +61,18 @@ public:
 
 protected slots:
     // Main processing function driven by a timer (to be implemented by subclasses)
-    virtual void process();
+    MRIGTL_LIB_EXPORT virtual void process();
 
 
 protected:
     // Main thread function (override from QThread)
-    void run() override;
+    MRIGTL_LIB_EXPORT void run() override;
 
     // Initialize the listener (to be implemented by subclasses)
-    virtual bool initialize();
+    MRIGTL_LIB_EXPORT virtual bool initialize();
 
     // Finalize when thread stops (to be implemented by subclasses)
-    virtual void finalize();
+    MRIGTL_LIB_EXPORT virtual void finalize();
 
     std::atomic<bool> threadActive;
     SignalManager* signalManager;
