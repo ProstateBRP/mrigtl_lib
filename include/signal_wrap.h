@@ -30,7 +30,7 @@ public:
 };
 
 // Wrapper for signals with no parameters
-class MRIGTL_LIB_EXPORT SignalWrapVoid : public SignalWrap {
+class SignalWrapVoid : public SignalWrap {
     Q_OBJECT
 public:
     SignalWrapVoid() { paramType = ""; }
@@ -44,7 +44,7 @@ signals:
 };
 
 // Wrapper for signals with string parameter
-class MRIGTL_LIB_EXPORT SignalWrapStr : public SignalWrap {
+class SignalWrapStr : public SignalWrap {
     Q_OBJECT
 public:
     SignalWrapStr() { paramType = "str"; }
@@ -57,7 +57,7 @@ signals:
 };
 
 // Wrapper for signals with dictionary parameter
-class MRIGTL_LIB_EXPORT SignalWrapDict : public SignalWrap {
+class SignalWrapDict : public SignalWrap {
     Q_OBJECT
 public:
     SignalWrapDict() { paramType = "dict"; }

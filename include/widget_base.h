@@ -32,27 +32,27 @@ namespace mrigtlbridge {
 class SignalManager;
 class ListenerBase;
 
-class MRIGTL_LIB_EXPORT WidgetBase : public QObject {
+class WidgetBase : public QObject {
     Q_OBJECT
 
 public:
-    explicit WidgetBase(QObject* parent = nullptr);
-    virtual ~WidgetBase();
+    MRIGTL_LIB_EXPORT explicit WidgetBase(QObject* parent = nullptr);
+    MRIGTL_LIB_EXPORT virtual ~WidgetBase();
 
     // Build the GUI on the provided parent widget
-    virtual void buildGUI(QWidget* parent);
+    MRIGTL_LIB_EXPORT virtual void buildGUI(QWidget* parent);
 
     // Update the GUI based on the state
-    virtual void updateGUI(const QString& state);
+    MRIGTL_LIB_EXPORT virtual void updateGUI(const QString& state);
 
     // Set the signal manager
-    virtual void setSignalManager(SignalManager* sm);
+    MRIGTL_LIB_EXPORT virtual void setSignalManager(SignalManager* sm);
 
     // Start the listener
-    virtual void startListener();
+    MRIGTL_LIB_EXPORT virtual void startListener();
 
     // Stop the listener
-    virtual void stopListener();
+    MRIGTL_LIB_EXPORT virtual void stopListener();
 
 signals:
     void messageBoxSignal(const QString& message);

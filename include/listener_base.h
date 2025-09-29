@@ -27,24 +27,24 @@ namespace mrigtlbridge {
 
 class SignalManager;
 
-class MRIGTL_LIB_EXPORT ListenerBase : public QThread {
+class ListenerBase : public QThread {
     Q_OBJECT
 
 public:
-    explicit ListenerBase(QObject* parent = nullptr);
-    virtual ~ListenerBase();
+    MRIGTL_LIB_EXPORT explicit ListenerBase(QObject* parent = nullptr);
+    MRIGTL_LIB_EXPORT virtual ~ListenerBase();
 
     // Configure listener parameters
-    virtual void configure(const QVariantMap& params);
+    MRIGTL_LIB_EXPORT virtual void configure(const QVariantMap& params);
 
     // Connect listener to signal manager
-    virtual void connectSlots(SignalManager* signalManager);
+    MRIGTL_LIB_EXPORT virtual void connectSlots(SignalManager* signalManager);
 
     // Disconnect listener from signal manager
-    virtual void disconnectSlots();
+    MRIGTL_LIB_EXPORT virtual void disconnectSlots();
 
     // Stop the listener thread
-    virtual void stop();
+    MRIGTL_LIB_EXPORT virtual void stop();
 
     // Map of custom signals that will be registered with signal manager
     QMap<QString, QString> customSignalList;

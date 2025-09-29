@@ -1,14 +1,12 @@
 #ifndef MRIGTL_LIB_EXPORT_H
 #define MRIGTL_LIB_EXPORT_H
 
-#ifdef _WIN32
-  #ifdef mrigtl_lib_shared_EXPORTS
-    #define MRIGTL_LIB_EXPORT __declspec(dllexport)
-  #else
-    #define MRIGTL_LIB_EXPORT __declspec(dllimport)
-  #endif
+#include <QtCore/qglobal.h>
+
+#if defined(mrigtl_lib_shared_EXPORTS)
+  #define MRIGTL_LIB_EXPORT Q_DECL_EXPORT
 #else
-  #define MRIGTL_LIB_EXPORT
+  #define MRIGTL_LIB_EXPORT Q_DECL_IMPORT
 #endif
 
 #endif // MRIGTL_LIB_EXPORT_H
