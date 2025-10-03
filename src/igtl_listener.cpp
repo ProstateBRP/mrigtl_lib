@@ -461,22 +461,77 @@ void IGTLListener::sendTrackingDataIGTL(const QVariantMap& param) {
         return;
     }
     
-    igtl::TrackingDataMessage::Pointer trackingDataMsg = igtl::TrackingDataMessage::New();
-    trackingDataMsg->SetDeviceName("MRTracking");
-    
-    for (auto it = param.constBegin(); it != param.constEnd(); ++it) {
-        QVariantMap coil = it.value().toMap();
-        QVariantList posVar = coil["position_pcs"].toList();
-        
-        igtl::TrackingDataElement::Pointer trackElement = igtl::TrackingDataElement::New();
-        trackElement->SetName(it.key().toStdString().c_str());
-        trackElement->SetType(igtl::TrackingDataElement::TYPE_TRACKER);
-        trackElement->SetPosition(posVar[0].toFloat(), posVar[1].toFloat(), posVar[2].toFloat());
-        trackingDataMsg->AddTrackingDataElement(trackElement);
+    // Check if clientServer is valid and connected
+    if (!clientServer || !clientServer->GetConnected()) {
+        signalManager->emitSignal("consoleTextIGTL", "ERROR: Not connected to OpenIGTLink server. Cannot send tracking data.");
+        return;
     }
-    
-    trackingDataMsg->Pack();
-    clientServer->Send(trackingDataMsg->GetPackPointer(), trackingDataMsg->GetPackSize());
+
+    qDebug() << "Creating an OpenIGTLink message...";
+    try {
+        igtl::TrackingDataMessage::Pointer trackingDataMsg = igtl::TrackingDataMessage::New();
+        trackingDataMsg->SetDeviceName("MRTracking");
+
+        igtl::TrackingDataElement::Pointer trackElement;
+        
+        // Handle data format from SRC: param["coils"] contains list of coil data
+        if (param.contains("coils")) {
+            QVariantList coilList = param["coils"].toList();
+            //signalManager->emitSignal("consoleTextIGTL", QString("Processing %1 coils from tracking data").arg(coils.size()));
+            qDebug() << "consoleTextIGTL" << QString("Processing %1 coils from tracking data").arg(coilList.size());
+
+            for (const QVariant& coilVariant : coilList) {
+
+                QVariantMap coilData = coilVariant.toMap();
+                QString coilName = coilData["id"].toString();
+                QVariantList posVar = coilData["position"].toList();
+                //coilData["timestamp"] = QDateTime::currentMSecsSinceEpoch();
+                
+                // Validate position data
+                if (posVar.size() < 3) {
+                    signalManager->emitSignal("consoleTextIGTL", QString("ERROR: Invalid position data for coil %1").arg(coilName));
+                    continue;
+                }
+                
+                trackElement = igtl::TrackingDataElement::New();
+                trackElement->SetName(coilName.toStdString().c_str());
+                trackElement->SetType(igtl::TrackingDataElement::TYPE_TRACKER);
+                trackElement->SetPosition(posVar[0].toFloat(), posVar[1].toFloat(), posVar[2].toFloat());
+                trackingDataMsg->AddTrackingDataElement(trackElement);
+            }
+        } else {
+            // Fallback: handle old format where each key is a coil name
+            for (auto it = param.constBegin(); it != param.constEnd(); ++it) {
+                QVariantMap coil = it.value().toMap();
+                QVariantList posVar = coil["position_pcs"].toList();
+                
+                // Validate position data
+                if (posVar.size() < 3) {
+                    signalManager->emitSignal("consoleTextIGTL", QString("ERROR: Invalid position data for coil %1").arg(it.key()));
+                    continue;
+                }
+                
+                trackElement = igtl::TrackingDataElement::New();
+                trackElement->SetName(it.key().toStdString().c_str());
+                trackElement->SetType(igtl::TrackingDataElement::TYPE_TRACKER);
+                trackElement->SetPosition(posVar[0].toFloat(), posVar[1].toFloat(), posVar[2].toFloat());
+                trackingDataMsg->AddTrackingDataElement(trackElement);
+            }
+        }
+        
+        trackingDataMsg->Pack();
+        int result = clientServer->Send(trackingDataMsg->GetPackPointer(), trackingDataMsg->GetPackSize());
+        
+        if (result > 0) {
+            signalManager->emitSignal("consoleTextIGTL", "Tracking data sent successfully");
+        } else {
+            signalManager->emitSignal("consoleTextIGTL", "ERROR: Failed to send tracking data");
+        }
+    } catch (const std::exception& e) {
+        signalManager->emitSignal("consoleTextIGTL", QString("ERROR: Exception in sendTrackingDataIGTL: %1").arg(e.what()));
+    } catch (...) {
+        signalManager->emitSignal("consoleTextIGTL", "ERROR: Unknown exception in sendTrackingDataIGTL");
+    }
 }
 
 } // namespace mrigtlbridge
