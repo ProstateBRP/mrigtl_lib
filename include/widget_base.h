@@ -27,32 +27,39 @@
 #include <QTextEdit>
 #include <memory>
 
+// Windows-specific export handling for Qt MOC symbols
+#ifdef _WIN32
+#pragma comment(linker, "/EXPORT:?staticMetaObject@WidgetBase@mrigtlbridge@@2UQMetaObject@@B")
+#pragma comment(linker, "/EXPORT:?qt_metacast@WidgetBase@mrigtlbridge@@UEAAPEAXPEBD@Z")
+#pragma comment(linker, "/EXPORT:?qt_metacall@WidgetBase@mrigtlbridge@@UEAAHW4Call@QMetaObject@@HPEAPEAX@Z")
+#endif
+
 namespace mrigtlbridge {
 
 class SignalManager;
 class ListenerBase;
 
-class WidgetBase : public QObject {
+class MRIGTL_LIB_EXPORT WidgetBase : public QObject {
     Q_OBJECT
 
 public:
-    MRIGTL_LIB_EXPORT explicit WidgetBase(QObject* parent = nullptr);
-    MRIGTL_LIB_EXPORT virtual ~WidgetBase();
+    explicit WidgetBase(QObject* parent = nullptr);
+    virtual ~WidgetBase();
 
     // Build the GUI on the provided parent widget
-    MRIGTL_LIB_EXPORT virtual void buildGUI(QWidget* parent);
+    virtual void buildGUI(QWidget* parent);
 
     // Update the GUI based on the state
-    MRIGTL_LIB_EXPORT virtual void updateGUI(const QString& state);
+    virtual void updateGUI(const QString& state);
 
     // Set the signal manager
-    MRIGTL_LIB_EXPORT virtual void setSignalManager(SignalManager* sm);
+    virtual void setSignalManager(SignalManager* sm);
 
     // Start the listener
-    MRIGTL_LIB_EXPORT virtual void startListener();
+    virtual void startListener();
 
     // Stop the listener
-    MRIGTL_LIB_EXPORT virtual void stopListener();
+    virtual void stopListener();
 
 signals:
     void messageBoxSignal(const QString& message);
@@ -77,7 +84,7 @@ protected:
     QStringList signalList;
     
     // Thread-safe console buffer (protected for derived classes)
-    MRIGTL_LIB_EXPORT void addConsoleMessage(QTextEdit* console, const QString& message);
+    void addConsoleMessage(QTextEdit* console, const QString& message);
     
 private:
     // Console buffer implementation
