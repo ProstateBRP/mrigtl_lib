@@ -23,15 +23,15 @@
 
 namespace mrigtlbridge {
 
-class MRIGTL_LIB_EXPORT MRSimListener : public ListenerBase {
+class MRSimListener : public ListenerBase {
     Q_OBJECT
 
 public:
-    explicit MRSimListener(QObject* parent = nullptr);
-    ~MRSimListener() override;
+    MRIGTL_LIB_EXPORT explicit MRSimListener(QObject* parent = nullptr);
+    MRIGTL_LIB_EXPORT ~MRSimListener() override;
 
-    void connectSlots(SignalManager* signalManager) override;
-    void disconnectSlots() override;
+    MRIGTL_LIB_EXPORT void connectSlots(SignalManager* signalManager) override;
+    MRIGTL_LIB_EXPORT void disconnectSlots() override;
 
 private slots:
     void onStartSequence();
@@ -42,8 +42,8 @@ protected slots:
     void process() override;
 
 protected:
-    bool initialize() override;
-    void finalize() override;
+    MRIGTL_LIB_EXPORT bool initialize() override;
+    MRIGTL_LIB_EXPORT void finalize() override;
 
 private:
     bool running;

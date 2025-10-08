@@ -30,15 +30,15 @@
 
 namespace mrigtlbridge {
 
-class MRIGTL_LIB_EXPORT IGTLListener : public ListenerBase {
+class IGTLListener : public ListenerBase {
     Q_OBJECT
 
 public:
-    explicit IGTLListener(QObject* parent = nullptr);
-    ~IGTLListener() override;
+    MRIGTL_LIB_EXPORT explicit IGTLListener(QObject* parent = nullptr);
+    MRIGTL_LIB_EXPORT ~IGTLListener() override;
 
-    void connectSlots(SignalManager* signalManager) override;
-    void disconnectSlots() override;
+    MRIGTL_LIB_EXPORT void connectSlots(SignalManager* signalManager) override;
+    MRIGTL_LIB_EXPORT void disconnectSlots() override;
 
 signals:
     void closeSocketSignal();
@@ -55,8 +55,8 @@ protected slots:
     void process() override;
 
 protected:
-    bool initialize() override;
-    void finalize() override;
+    MRIGTL_LIB_EXPORT bool initialize() override;
+    MRIGTL_LIB_EXPORT void finalize() override;
 
 private:
     bool connect(const QString& ip, int port);

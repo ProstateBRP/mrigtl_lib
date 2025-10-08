@@ -23,18 +23,18 @@
 namespace mrigtlbridge {
 
 // Base class for signal wrappers
-class MRIGTL_LIB_EXPORT SignalWrap : public QObject {
+class SignalWrap : public QObject {
 public:
-    virtual bool emitSignal(const QVariant& param = QVariant()) = 0;
+    MRIGTL_LIB_EXPORT virtual bool emitSignal(const QVariant& param = QVariant()) = 0;
     QString paramType;
 };
 
 // Wrapper for signals with no parameters
-class MRIGTL_LIB_EXPORT SignalWrapVoid : public SignalWrap {
+class SignalWrapVoid : public SignalWrap {
     Q_OBJECT
 public:
-    SignalWrapVoid() { paramType = ""; }
-    bool emitSignal(const QVariant& param = QVariant()) override {
+    MRIGTL_LIB_EXPORT SignalWrapVoid() { paramType = ""; }
+    MRIGTL_LIB_EXPORT bool emitSignal(const QVariant& param = QVariant()) override {
         Q_UNUSED(param);
         emit signal();
         return true;
@@ -44,11 +44,11 @@ signals:
 };
 
 // Wrapper for signals with string parameter
-class MRIGTL_LIB_EXPORT SignalWrapStr : public SignalWrap {
+class SignalWrapStr : public SignalWrap {
     Q_OBJECT
 public:
-    SignalWrapStr() { paramType = "str"; }
-    bool emitSignal(const QVariant& param = QVariant()) override {
+    MRIGTL_LIB_EXPORT SignalWrapStr() { paramType = "str"; }
+    MRIGTL_LIB_EXPORT bool emitSignal(const QVariant& param = QVariant()) override {
         emit signal(param.toString());
         return true;
     }
@@ -57,11 +57,11 @@ signals:
 };
 
 // Wrapper for signals with dictionary parameter
-class MRIGTL_LIB_EXPORT SignalWrapDict : public SignalWrap {
+class SignalWrapDict : public SignalWrap {
     Q_OBJECT
 public:
-    SignalWrapDict() { paramType = "dict"; }
-    bool emitSignal(const QVariant& param = QVariant()) override {
+    MRIGTL_LIB_EXPORT SignalWrapDict() { paramType = "dict"; }
+    MRIGTL_LIB_EXPORT bool emitSignal(const QVariant& param = QVariant()) override {
         emit signal(param.toMap());
         return true;
     }
