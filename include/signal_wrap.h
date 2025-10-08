@@ -30,11 +30,11 @@ public:
 };
 
 // Wrapper for signals with no parameters
-class SignalWrapVoid : public SignalWrap {
+class MRIGTL_LIB_EXPORT SignalWrapVoid : public SignalWrap {
     Q_OBJECT
 public:
     SignalWrapVoid() { paramType = ""; }
-    MRIGTL_LIB_EXPORT bool emitSignal(const QVariant& param = QVariant()) override {
+    bool emitSignal(const QVariant& param = QVariant()) override {
         Q_UNUSED(param);
         emit signal();
         return true;
@@ -44,11 +44,11 @@ signals:
 };
 
 // Wrapper for signals with string parameter
-class SignalWrapStr : public SignalWrap {
+class MRIGTL_LIB_EXPORT SignalWrapStr : public SignalWrap {
     Q_OBJECT
 public:
     SignalWrapStr() { paramType = "str"; }
-    MRIGTL_LIB_EXPORT bool emitSignal(const QVariant& param = QVariant()) override {
+    bool emitSignal(const QVariant& param = QVariant()) override {
         emit signal(param.toString());
         return true;
     }
@@ -57,11 +57,11 @@ signals:
 };
 
 // Wrapper for signals with dictionary parameter
-class SignalWrapDict : public SignalWrap {
+class MRIGTL_LIB_EXPORT SignalWrapDict : public SignalWrap {
     Q_OBJECT
 public:
     SignalWrapDict() { paramType = "dict"; }
-    MRIGTL_LIB_EXPORT bool emitSignal(const QVariant& param = QVariant()) override {
+    bool emitSignal(const QVariant& param = QVariant()) override {
         emit signal(param.toMap());
         return true;
     }

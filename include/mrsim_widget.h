@@ -24,16 +24,16 @@
 
 namespace mrigtlbridge {
 
-class MRSimWidget : public WidgetBase {
+class MRIGTL_LIB_EXPORT MRSimWidget : public WidgetBase {
     Q_OBJECT
 
 public:
-    MRIGTL_LIB_EXPORT explicit MRSimWidget(QObject* parent = nullptr);
-    MRIGTL_LIB_EXPORT ~MRSimWidget() override;
+    explicit MRSimWidget(QObject* parent = nullptr);
+    ~MRSimWidget() override;
 
-    MRIGTL_LIB_EXPORT void buildGUI(QWidget* parent) override;
-    MRIGTL_LIB_EXPORT void updateGUI(const QString& state) override;
-    MRIGTL_LIB_EXPORT void setSignalManager(SignalManager* sm) override;
+    void buildGUI(QWidget* parent) override;
+    void updateGUI(const QString& state) override;
+    void setSignalManager(SignalManager* sm) override;
 
 private slots:
     void onConnectButtonClicked();

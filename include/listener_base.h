@@ -27,24 +27,24 @@ namespace mrigtlbridge {
 
 class SignalManager;
 
-class ListenerBase : public QThread {
+class MRIGTL_LIB_EXPORT ListenerBase : public QThread {
     Q_OBJECT
 
 public:
-    MRIGTL_LIB_EXPORT explicit ListenerBase(QObject* parent = nullptr);
-    MRIGTL_LIB_EXPORT virtual ~ListenerBase();
+    explicit ListenerBase(QObject* parent = nullptr);
+    virtual ~ListenerBase();
 
     // Configure listener parameters
-    MRIGTL_LIB_EXPORT virtual void configure(const QVariantMap& params);
+    virtual void configure(const QVariantMap& params);
 
     // Connect listener to signal manager
-    MRIGTL_LIB_EXPORT virtual void connectSlots(SignalManager* signalManager);
+    virtual void connectSlots(SignalManager* signalManager);
 
     // Disconnect listener from signal manager
-    MRIGTL_LIB_EXPORT virtual void disconnectSlots();
+    virtual void disconnectSlots();
 
     // Stop the listener thread
-    MRIGTL_LIB_EXPORT virtual void stop();
+    virtual void stop();
 
     // Map of custom signals that will be registered with signal manager
     QMap<QString, QString> customSignalList;
@@ -61,18 +61,18 @@ public:
 
 protected slots:
     // Main processing function driven by a timer (to be implemented by subclasses)
-    MRIGTL_LIB_EXPORT virtual void process();
+    virtual void process();
 
 
 protected:
     // Main thread function (override from QThread)
-    MRIGTL_LIB_EXPORT void run() override;
+    void run() override;
 
     // Initialize the listener (to be implemented by subclasses)
-    MRIGTL_LIB_EXPORT virtual bool initialize();
+    virtual bool initialize();
 
     // Finalize when thread stops (to be implemented by subclasses)
-    MRIGTL_LIB_EXPORT virtual void finalize();
+    virtual void finalize();
 
     std::atomic<bool> threadActive;
     SignalManager* signalManager;
