@@ -23,35 +23,28 @@
 #include <memory>
 #include <atomic>
 
-// Windows-specific export handling for Qt MOC symbols
-#ifdef _WIN32
-#pragma comment(linker, "/EXPORT:?staticMetaObject@ListenerBase@mrigtlbridge@@2UQMetaObject@@B")
-#pragma comment(linker, "/EXPORT:?qt_metacast@ListenerBase@mrigtlbridge@@UEAAPEAXPEBD@Z")
-#pragma comment(linker, "/EXPORT:?qt_metacall@ListenerBase@mrigtlbridge@@UEAAHW4Call@QMetaObject@@HPEAPEAX@Z")
-#endif
-
 namespace mrigtlbridge {
 
 class SignalManager;
 
-class MRIGTL_LIB_EXPORT ListenerBase : public QThread {
+class ListenerBase : public QThread {
     Q_OBJECT
 
 public:
-    explicit ListenerBase(QObject* parent = nullptr);
-    virtual ~ListenerBase();
+    MRIGTL_LIB_EXPORT explicit ListenerBase(QObject* parent = nullptr);
+    MRIGTL_LIB_EXPORT virtual ~ListenerBase();
 
     // Configure listener parameters
-    virtual void configure(const QVariantMap& params);
+    MRIGTL_LIB_EXPORT virtual void configure(const QVariantMap& params);
 
     // Connect listener to signal manager
-    virtual void connectSlots(SignalManager* signalManager);
+    MRIGTL_LIB_EXPORT virtual void connectSlots(SignalManager* signalManager);
 
     // Disconnect listener from signal manager
-    virtual void disconnectSlots();
+    MRIGTL_LIB_EXPORT virtual void disconnectSlots();
 
     // Stop the listener thread
-    virtual void stop();
+    MRIGTL_LIB_EXPORT virtual void stop();
 
     // Map of custom signals that will be registered with signal manager
     QMap<QString, QString> customSignalList;
@@ -68,18 +61,18 @@ public:
 
 protected slots:
     // Main processing function driven by a timer (to be implemented by subclasses)
-    virtual void process();
+    MRIGTL_LIB_EXPORT virtual void process();
 
 
 protected:
     // Main thread function (override from QThread)
-    void run() override;
+    MRIGTL_LIB_EXPORT void run() override;
 
     // Initialize the listener (to be implemented by subclasses)
-    virtual bool initialize();
+    MRIGTL_LIB_EXPORT virtual bool initialize();
 
     // Finalize when thread stops (to be implemented by subclasses)
-    virtual void finalize();
+    MRIGTL_LIB_EXPORT virtual void finalize();
 
     std::atomic<bool> threadActive;
     SignalManager* signalManager;
