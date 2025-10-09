@@ -49,9 +49,7 @@ class SignalWrapStr : public SignalWrap {
 public:
     MRIGTL_LIB_EXPORT SignalWrapStr() { paramType = "str"; }
     MRIGTL_LIB_EXPORT bool emitSignal(const QVariant& param = QVariant()) override {
-        // Create a proper deep copy to prevent heap corruption in multi-threaded scenarios
-        QString safeString = QString(param.toString());
-        emit signal(safeString);
+        emit signal(param.toString());
         return true;
     }
 signals:
@@ -64,9 +62,7 @@ class SignalWrapDict : public SignalWrap {
 public:
     MRIGTL_LIB_EXPORT SignalWrapDict() { paramType = "dict"; }
     MRIGTL_LIB_EXPORT bool emitSignal(const QVariant& param = QVariant()) override {
-        // Create a proper deep copy to prevent heap corruption in multi-threaded scenarios
-        QVariantMap safeMap = QVariantMap(param.toMap());
-        emit signal(safeMap);
+        emit signal(param.toMap());
         return true;
     }
 signals:

@@ -123,15 +123,12 @@ bool SignalManager::disconnectSlot(const QString& name, QObject* receiver, const
 }
 
 bool SignalManager::emitSignal(const QString& name, const QVariant& param) {
-    // Create deep copies to ensure thread safety and prevent heap corruption
-    QString safeName = QString(name);
-    QVariant safeParam = QVariant(param);
+    // Avoid unnecessary copying that can cause heap corruption with large data
+    // Use references where possible to prevent memory issues
     
-    qDebug() << "SignalManager::emitSignal(" << safeName << ")";
-    if (signalMap.contains(safeName)) {
-        return signalMap[safeName]->emitSignal(safeParam);
+    if (signalMap.contains(name)) {
+        return signalMap[name]->emitSignal(param);
     } else {
-        qWarning() << "Error in emitting signal: Signal not found";
         return false;
     }
 }
@@ -156,9 +153,8 @@ void SignalManagerProxy::setSignalManager(SignalManager* manager) {
 
 void SignalManagerProxy::emitSignal(const QString& name, const QVariant& param) {
     SignalData data;
-    // Create explicit deep copies to ensure thread safety
-    data.name = QString(name);
-    data.param = QVariant(param);
+    data.name = name;
+    data.param = param;
     
     {
         std::lock_guard<std::mutex> lock(queueMutex);
@@ -186,13 +182,9 @@ void SignalManagerProxy::run() {
         }
         
         if (hasData && signalManager) {
-            // Create local copies with explicit deep copy for thread safety
-            QString safeName = QString(data.name);
-            QVariant safeParam = QVariant(data.param);
-            
             // Use QMetaObject::invokeMethod to safely emit signals from this thread
-            QMetaObject::invokeMethod(signalManager, [this, safeName, safeParam]() {
-                signalManager->emitSignal(safeName, safeParam);
+            QMetaObject::invokeMethod(signalManager, [this, data]() {
+                signalManager->emitSignal(data.name, data.param);
             }, Qt::QueuedConnection);
         }
         
