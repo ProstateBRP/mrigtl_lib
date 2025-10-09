@@ -123,9 +123,13 @@ bool SignalManager::disconnectSlot(const QString& name, QObject* receiver, const
 }
 
 bool SignalManager::emitSignal(const QString& name, const QVariant& param) {
-    qDebug() << "SignalManager::emitSignal(" << name << ")";
-    if (signalMap.contains(name)) {
-        return signalMap[name]->emitSignal(param);
+    // Create deep copies to ensure thread safety and prevent heap corruption
+    QString safeName = QString(name);
+    QVariant safeParam = QVariant(param);
+    
+    qDebug() << "SignalManager::emitSignal(" << safeName << ")";
+    if (signalMap.contains(safeName)) {
+        return signalMap[safeName]->emitSignal(safeParam);
     } else {
         qWarning() << "Error in emitting signal: Signal not found";
         return false;
@@ -152,8 +156,9 @@ void SignalManagerProxy::setSignalManager(SignalManager* manager) {
 
 void SignalManagerProxy::emitSignal(const QString& name, const QVariant& param) {
     SignalData data;
-    data.name = name;
-    data.param = param;
+    // Create explicit deep copies to ensure thread safety
+    data.name = QString(name);
+    data.param = QVariant(param);
     
     {
         std::lock_guard<std::mutex> lock(queueMutex);
@@ -181,9 +186,13 @@ void SignalManagerProxy::run() {
         }
         
         if (hasData && signalManager) {
+            // Create local copies with explicit deep copy for thread safety
+            QString safeName = QString(data.name);
+            QVariant safeParam = QVariant(data.param);
+            
             // Use QMetaObject::invokeMethod to safely emit signals from this thread
-            QMetaObject::invokeMethod(signalManager, [this, data]() {
-                signalManager->emitSignal(data.name, data.param);
+            QMetaObject::invokeMethod(signalManager, [this, safeName, safeParam]() {
+                signalManager->emitSignal(safeName, safeParam);
             }, Qt::QueuedConnection);
         }
         
