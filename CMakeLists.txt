@@ -89,6 +89,9 @@ set_target_properties(${PROJECT_NAME}_static PROPERTIES
     VERSION ${PROJECT_VERSION}
 )
 
+# Define static library macro to disable DLL exports
+target_compile_definitions(${PROJECT_NAME}_static PRIVATE MRIGTL_STATIC_DEFINE)
+
 # Link libraries to shared library
 if(QT_VERSION_MAJOR EQUAL 6)
     target_link_libraries(${PROJECT_NAME}_shared
