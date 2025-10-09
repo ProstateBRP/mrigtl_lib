@@ -35,7 +35,7 @@ class SignalWrapVoid;
 class SignalWrapStr;
 class SignalWrapDict;
 
-class SignalManager : public QObject {
+class MRIGTL_QT_EXPORT SignalManager : public QObject {
     Q_OBJECT
 
 public:
@@ -62,7 +62,7 @@ private:
     std::unique_ptr<SignalManagerProxy> signalManagerProxy;
 };
 
-class SignalManagerProxy : public QThread {
+class MRIGTL_QT_EXPORT SignalManagerProxy : public QThread {
     Q_OBJECT
 
 public:

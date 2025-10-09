@@ -27,7 +27,7 @@ namespace mrigtlbridge {
 
 class SignalManager;
 
-class ListenerBase : public QThread {
+class MRIGTL_QT_EXPORT ListenerBase : public QThread {
     Q_OBJECT
 
 public:

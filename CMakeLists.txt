@@ -72,6 +72,7 @@ set(HEADERS
 
 # Create shared library
 add_library(${PROJECT_NAME}_shared SHARED ${LIB_SOURCES} ${HEADERS})
+
 set_target_properties(${PROJECT_NAME}_shared PROPERTIES 
     OUTPUT_NAME ${PROJECT_NAME}
     VERSION ${PROJECT_VERSION}

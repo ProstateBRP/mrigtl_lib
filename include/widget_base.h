@@ -32,7 +32,7 @@ namespace mrigtlbridge {
 class SignalManager;
 class ListenerBase;
 
-class WidgetBase : public QObject {
+class MRIGTL_QT_EXPORT WidgetBase : public QObject {
     Q_OBJECT
 
 public:
