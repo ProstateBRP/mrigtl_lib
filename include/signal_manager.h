@@ -39,17 +39,17 @@ class MRIGTL_QT_EXPORT SignalManager : public QObject {
     Q_OBJECT
 
 public:
-    MRIGTL_LIB_EXPORT explicit SignalManager(QObject* parent = nullptr);
-    MRIGTL_LIB_EXPORT ~SignalManager();
+    explicit SignalManager(QObject* parent = nullptr);
+    ~SignalManager();
 
-    MRIGTL_LIB_EXPORT bool addSlot(const QString& name, const QString& paramType);
-    MRIGTL_LIB_EXPORT bool addCustomSignal(const QString& name, const QString& paramType);
-    MRIGTL_LIB_EXPORT bool addCustomSlot(const QString& name, const QString& paramType, QObject* receiver, const char* slot);
-    MRIGTL_LIB_EXPORT bool connectSlot(const QString& name, QObject* receiver, const char* slot);
-    MRIGTL_LIB_EXPORT bool disconnectSlot(const QString& name, QObject* receiver = nullptr, const char* slot = nullptr);
-    MRIGTL_LIB_EXPORT bool emitSignal(const QString& name, const QVariant& param = QVariant());
+    bool addSlot(const QString& name, const QString& paramType);
+    bool addCustomSignal(const QString& name, const QString& paramType);
+    bool addCustomSlot(const QString& name, const QString& paramType, QObject* receiver, const char* slot);
+    bool connectSlot(const QString& name, QObject* receiver, const char* slot);
+    bool disconnectSlot(const QString& name, QObject* receiver = nullptr, const char* slot = nullptr);
+    bool emitSignal(const QString& name, const QVariant& param = QVariant());
 
-    MRIGTL_LIB_EXPORT SignalManagerProxy* getSignalManagerProxy();
+    SignalManagerProxy* getSignalManagerProxy();
 
 private:
     friend class SignalManagerProxy;
@@ -66,12 +66,12 @@ class MRIGTL_QT_EXPORT SignalManagerProxy : public QThread {
     Q_OBJECT
 
 public:
-    MRIGTL_LIB_EXPORT SignalManagerProxy(QObject* parent = nullptr);
-    MRIGTL_LIB_EXPORT ~SignalManagerProxy();
+    SignalManagerProxy(QObject* parent = nullptr);
+    ~SignalManagerProxy();
 
-    MRIGTL_LIB_EXPORT void setSignalManager(SignalManager* signalManager);
-    MRIGTL_LIB_EXPORT void emitSignal(const QString& name, const QVariant& param = QVariant());
-    MRIGTL_LIB_EXPORT void run() override;
+    void setSignalManager(SignalManager* signalManager);
+    void emitSignal(const QString& name, const QVariant& param = QVariant());
+    void run() override;
 
 private:
     struct SignalData {
