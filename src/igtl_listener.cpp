@@ -412,8 +412,22 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
         for (int i = 0; i < binaryList.size(); i++) {
           int offset = binaryOffsetList[i].toInt();
           void* dest = static_cast<void*>(static_cast<char*>(imageMsg->GetScalarPointer()) + offset);
-          void* src = static_cast<void*>(binaryList[i].toByteArray().data());
-          int dataSize = dimension[0] * dimension[1] * dimension[2] * pixelSize * numberOfComponents;
+          
+          // Store QByteArray to prevent temporary destruction
+          QByteArray binaryData = binaryList[i].toByteArray();
+          void* src = static_cast<void*>(binaryData.data());
+          
+          // Use actual QByteArray size instead of calculated total image size
+          int dataSize = binaryData.size();
+          
+          // Safety check to prevent buffer overflow
+          int totalImageSize = dimension[0] * dimension[1] * dimension[2] * pixelSize * numberOfComponents;
+          if (offset + dataSize > totalImageSize) {
+            signalManager->emitSignal("consoleTextIGTL", QString("ERROR: Binary data would overflow image buffer - offset: %1, size: %2, total: %3")
+                .arg(offset).arg(dataSize).arg(totalImageSize));
+            return;
+          }
+          
           std::memcpy(dest, src, dataSize);
         }
 
