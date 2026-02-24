@@ -37,14 +37,14 @@ make
 This will generate:
 - A shared library: `libmrigtl_lib.so` (Linux) or `libmrigtl_lib.dylib` (macOS)
 - A static library: `libmrigtl_lib_static.a`
-- An executable: `mrigtl_lib`
+- An executable: `mrigtl_sim`
 
 ## Running
 
 From the build directory:
 
 ```bash
-./mrigtl_lib
+./mrigtl_sim
 ```
 
 ## Using the Library

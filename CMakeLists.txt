@@ -125,7 +125,7 @@ endif()
 # Create executable that uses the shared library
 add_executable(${PROJECT_NAME}_exe ${EXE_SOURCES})
 set_target_properties(${PROJECT_NAME}_exe PROPERTIES 
-    OUTPUT_NAME ${PROJECT_NAME}
+    OUTPUT_NAME mrigtl_sim
 )
 
 # Link executable with the shared library
