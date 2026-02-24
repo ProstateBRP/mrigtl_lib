@@ -20,6 +20,7 @@
 #include <QCoreApplication>
 #include <QMutexLocker>
 #include <QDateTime>
+#include <cmath>
 
 namespace mrigtlbridge {
 
@@ -108,20 +109,29 @@ void MRSimListener::process() {
             int size = width * height * 2;
             QByteArray imgData;
             imgData.resize(size);
-            
-            // Fill with a simple pattern (alternating values)
+
+            // Fill with concentric rings radiating from the center
             quint16* pixelData = reinterpret_cast<quint16*>(imgData.data());
-            for (int i = 0; i < width * height; i++) {
-                pixelData[i] = (i % 2 == 0) ? 1000 : 200;
+            float cx = width / 2.0f;
+            float cy = height / 2.0f;
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    float dx = x - cx;
+                    float dy = y - cy;
+                    float r = std::sqrt(dx * dx + dy * dy);
+                    pixelData[y * width + x] = (quint16)(std::sin(r * 0.3f) * 1500.0f + 2000.0f);
+                }
             }
             
             // Set the binary data
-            //QVariantList binary;
-            //binary.append(imgData);
-            imageParam["binary"] = imgData;
+            QVariantList binary;
+            binary.append(imgData);
+            imageParam["binary"] = binary;
 
             // Set binary offset
-            imageParam["binaryOffset"] = 0;
+            QVariantList binaryOffset;
+            binaryOffset.append(0);
+            imageParam["binaryOffset"] = binaryOffset;
             
             // Add timestamp
             imageParam["timestamp"] = QDateTime::currentDateTime();

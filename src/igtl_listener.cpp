@@ -336,6 +336,12 @@ void IGTLListener::sendImageIGTL(const QVariantMap& param) {
                 .arg(dimensionVar.size()).arg(spacingVar.size()).arg(matrixVar.size()));
             return;
         }
+
+        if (binaryList.size() == 0 || binaryOffsetList.size() != binaryList.size()) {
+            signalManager->emitSignal("consoleTextIGTL", QString("ERROR: binary/binaryOffset list size mismatch - binary: %1, binaryOffset: %2")
+                .arg(binaryList.size()).arg(binaryOffsetList.size()));
+            return;
+        }
         
         // Convert variant lists to native types
         std::vector<int> dimension = {
