@@ -35,8 +35,7 @@ std::map<std::string, std::string> SignalNames = {
     // For MR Listener
     {"startSequence", ""},
     {"stopSequence", ""},
-    {"updateScanPlane", "dict"},
-    {"setTrackingEnabled", "str"}
+    {"updateScanPlane", "dict"}
 };
 
 std::map<std::string, std::vector<int>> DataTypeTable = {

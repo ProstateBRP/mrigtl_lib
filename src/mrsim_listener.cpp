@@ -27,8 +27,14 @@ namespace mrigtlbridge {
 MRSimListener::MRSimListener(QObject* parent)
     : ListenerBase(parent),
       running(false),
-      trackingEnabled(false) {
-    
+      trackingEnabled(false),
+      trackingChannels(1) {
+
+    customSignalList = {
+        {"setTrackingEnabled", "str"},
+        {"setTrackingChannels", "str"}
+    };
+
     // Initialize scan planes
     scanPlanes.resize(3);
 }
@@ -38,10 +44,16 @@ MRSimListener::~MRSimListener() {
 
 void MRSimListener::connectSlots(SignalManager* sm) {
     ListenerBase::connectSlots(sm);
+
+    for (auto it = customSignalList.constBegin(); it != customSignalList.constEnd(); ++it) {
+        sm->addCustomSignal(it.key(), it.value());
+    }
+
     sm->connectSlot("startSequence", this, SLOT(onStartSequence()));
     sm->connectSlot("stopSequence", this, SLOT(onStopSequence()));
     sm->connectSlot("updateScanPlane", this, SLOT(onUpdateScanPlane(QVariantMap)));
     sm->connectSlot("setTrackingEnabled", this, SLOT(onSetTrackingEnabled(QString)));
+    sm->connectSlot("setTrackingChannels", this, SLOT(onSetTrackingChannels(QString)));
 }
 
 void MRSimListener::disconnectSlots() {
@@ -51,6 +63,7 @@ void MRSimListener::disconnectSlots() {
         signalManager->disconnectSlot("stopSequence", this, SLOT(onStopSequence()));
         signalManager->disconnectSlot("updateScanPlane", this, SLOT(onUpdateScanPlane(QVariantMap)));
         signalManager->disconnectSlot("setTrackingEnabled", this, SLOT(onSetTrackingEnabled(QString)));
+        signalManager->disconnectSlot("setTrackingChannels", this, SLOT(onSetTrackingChannels(QString)));
     }
 }
 
@@ -113,7 +126,9 @@ void MRSimListener::process() {
             QByteArray imgData;
             imgData.resize(size);
 
-            // Fill with concentric rings radiating from the center
+            // Fill with concentric rings that expand outward each frame
+            static float phase = 0.0f;
+            phase += 0.3f;
             quint16* pixelData = reinterpret_cast<quint16*>(imgData.data());
             float cx = width / 2.0f;
             float cy = height / 2.0f;
@@ -122,7 +137,7 @@ void MRSimListener::process() {
                     float dx = x - cx;
                     float dy = y - cy;
                     float r = std::sqrt(dx * dx + dy * dy);
-                    pixelData[y * width + x] = (quint16)(std::sin(r * 0.3f) * 1500.0f + 2000.0f);
+                    pixelData[y * width + x] = (quint16)(std::sin(r * 0.3f - phase) * 1500.0f + 2000.0f);
                 }
             }
             
@@ -149,13 +164,21 @@ void MRSimListener::process() {
             if (trackingEnabled) {
                 static float angle = 0.0f;
                 angle += 0.1f;
-                QVariantMap coil;
-                coil["id"] = "SimCoil";
-                QVariantList pos;
-                pos << 10.0f * std::cos(angle) << 10.0f * std::sin(angle) << 0.0f;
-                coil["position"] = pos;
+                const float radius = 50.0f;
+                const float phaseStep = (trackingChannels > 1)
+                    ? (2.0f * M_PI / trackingChannels) : 0.0f;
                 QVariantList coilList;
-                coilList.append(coil);
+                for (int ch = 0; ch < trackingChannels; ++ch) {
+                    float phase = angle + ch * phaseStep;
+                    QVariantMap coil;
+                    coil["id"] = QString("SimCoil_%1").arg(ch);
+                    QVariantList pos;
+                    pos << radius * std::cos(phase)
+                        << radius * std::sin(phase)
+                        << 0.0f;
+                    coil["position"] = pos;
+                    coilList.append(coil);
+                }
                 QVariantMap trackingParam;
                 trackingParam["coils"] = coilList;
                 signalManager->emitSignal("sendTrackingDataIGTL", trackingParam);
@@ -206,6 +229,16 @@ void MRSimListener::onSetTrackingEnabled(const QString& enabled) {
     trackingEnabled = (enabled == "true");
     signalManager->emitSignal("consoleTextMR",
         QString("Tracking %1").arg(trackingEnabled ? "enabled" : "disabled"));
+}
+
+void MRSimListener::onSetTrackingChannels(const QString& channels) {
+    QMutexLocker locker(&mutex);
+    int n = channels.toInt();
+    if (n >= 1) {
+        trackingChannels = n;
+        signalManager->emitSignal("consoleTextMR",
+            QString("Tracking channels set to %1").arg(trackingChannels));
+    }
 }
 
 } // namespace mrigtlbridge

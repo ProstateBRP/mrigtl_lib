@@ -17,6 +17,7 @@
 #include "mrigtl_lib_export.h"
 #include "widget_base.h"
 #include <QCheckBox>
+#include <QSpinBox>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QTextEdit>
@@ -43,6 +44,7 @@ private slots:
     void onStopSequenceClicked();
     void onConsoleTextReceived(const QString& text);
     void onTrackingCheckBoxChanged(int state);
+    void onTrackingChannelsChanged(int value);
 
 private:
     // GUI elements
@@ -53,6 +55,7 @@ private:
     QTextEdit* mrSimConsole;
     QLabel* mrSimStatus;
     QCheckBox* trackingCheckBox;
+    QSpinBox* trackingChannelsSpinBox;
 };
 
 } // namespace mrigtlbridge

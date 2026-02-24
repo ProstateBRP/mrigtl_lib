@@ -31,7 +31,8 @@ MRSimWidget::MRSimWidget(QObject* parent)
       stopSequenceButton(nullptr),
       mrSimConsole(nullptr),
       mrSimStatus(nullptr),
-      trackingCheckBox(nullptr) {
+      trackingCheckBox(nullptr),
+      trackingChannelsSpinBox(nullptr) {
     
     // Set the listener class for this widget
     listener_class << "MRSimListener";
@@ -90,8 +91,21 @@ void MRSimWidget::buildGUI(QWidget* parent) {
     layout->addWidget(preferencesGroupBox);
 
     QVBoxLayout* preferencesLayout = new QVBoxLayout(preferencesGroupBox);
+
     trackingCheckBox = new QCheckBox("Enable Tracking", parent);
     preferencesLayout->addWidget(trackingCheckBox);
+
+    QHBoxLayout* channelsLayout = new QHBoxLayout();
+    QLabel* channelsLabel = new QLabel("Tracking Channels:", parent);
+    trackingChannelsSpinBox = new QSpinBox(parent);
+    trackingChannelsSpinBox->setMinimum(1);
+    trackingChannelsSpinBox->setMaximum(32);
+    trackingChannelsSpinBox->setValue(1);
+    trackingChannelsSpinBox->setEnabled(false);
+    channelsLayout->addWidget(channelsLabel);
+    channelsLayout->addWidget(trackingChannelsSpinBox);
+    channelsLayout->addStretch();
+    preferencesLayout->addLayout(channelsLayout);
 
     // Console
     QGroupBox* consoleGroupBox = new QGroupBox("Console", parent);
@@ -108,6 +122,8 @@ void MRSimWidget::buildGUI(QWidget* parent) {
     connect(startSequenceButton, &QPushButton::clicked, this, &MRSimWidget::onStartSequenceClicked);
     connect(stopSequenceButton, &QPushButton::clicked, this, &MRSimWidget::onStopSequenceClicked);
     connect(trackingCheckBox, &QCheckBox::stateChanged, this, &MRSimWidget::onTrackingCheckBoxChanged);
+    connect(trackingChannelsSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+            this, &MRSimWidget::onTrackingChannelsChanged);
 }
 
 void MRSimWidget::updateGUI(const QString& state) {
@@ -198,9 +214,16 @@ void MRSimWidget::onConsoleTextReceived(const QString& text) {
 }
 
 void MRSimWidget::onTrackingCheckBoxChanged(int state) {
+    bool checked = (state == Qt::Checked);
+    trackingChannelsSpinBox->setEnabled(checked);
     if (signalManager) {
-        signalManager->emitSignal("setTrackingEnabled",
-            QString(state == Qt::Checked ? "true" : "false"));
+        signalManager->emitSignal("setTrackingEnabled", QString(checked ? "true" : "false"));
+    }
+}
+
+void MRSimWidget::onTrackingChannelsChanged(int value) {
+    if (signalManager) {
+        signalManager->emitSignal("setTrackingChannels", QString::number(value));
     }
 }
 
