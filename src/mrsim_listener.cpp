@@ -26,7 +26,8 @@ namespace mrigtlbridge {
 
 MRSimListener::MRSimListener(QObject* parent)
     : ListenerBase(parent),
-      running(false) {
+      running(false),
+      trackingEnabled(false) {
     
     // Initialize scan planes
     scanPlanes.resize(3);
@@ -40,6 +41,7 @@ void MRSimListener::connectSlots(SignalManager* sm) {
     sm->connectSlot("startSequence", this, SLOT(onStartSequence()));
     sm->connectSlot("stopSequence", this, SLOT(onStopSequence()));
     sm->connectSlot("updateScanPlane", this, SLOT(onUpdateScanPlane(QVariantMap)));
+    sm->connectSlot("setTrackingEnabled", this, SLOT(onSetTrackingEnabled(QString)));
 }
 
 void MRSimListener::disconnectSlots() {
@@ -48,6 +50,7 @@ void MRSimListener::disconnectSlots() {
         signalManager->disconnectSlot("startSequence", this, SLOT(onStartSequence()));
         signalManager->disconnectSlot("stopSequence", this, SLOT(onStopSequence()));
         signalManager->disconnectSlot("updateScanPlane", this, SLOT(onUpdateScanPlane(QVariantMap)));
+        signalManager->disconnectSlot("setTrackingEnabled", this, SLOT(onSetTrackingEnabled(QString)));
     }
 }
 
@@ -141,7 +144,23 @@ void MRSimListener::process() {
             
             // Send the image via OpenIGTLink
             signalManager->emitSignal("sendImageIGTL", imageParam);
-        } 
+
+            // Send simulated tracking data if enabled
+            if (trackingEnabled) {
+                static float angle = 0.0f;
+                angle += 0.1f;
+                QVariantMap coil;
+                coil["id"] = "SimCoil";
+                QVariantList pos;
+                pos << 10.0f * std::cos(angle) << 10.0f * std::sin(angle) << 0.0f;
+                coil["position"] = pos;
+                QVariantList coilList;
+                coilList.append(coil);
+                QVariantMap trackingParam;
+                trackingParam["coils"] = coilList;
+                signalManager->emitSignal("sendTrackingDataIGTL", trackingParam);
+            }
+        }
         catch (const std::exception& e) {
             signalManager->emitSignal("consoleTextMR", QString("Error: %1").arg(e.what()));
         }
@@ -174,12 +193,19 @@ void MRSimListener::onStopSequence() {
 
 void MRSimListener::onUpdateScanPlane(const QVariantMap& param) {
     QMutexLocker locker(&mutex);
-    
+
     int planeId = param["plane_id"].toInt();
     if (planeId >= 0 && planeId < scanPlanes.size()) {
         scanPlanes[planeId] = param;
         signalManager->emitSignal("consoleTextMR", QString("Scan plane %1 updated").arg(planeId));
     }
+}
+
+void MRSimListener::onSetTrackingEnabled(const QString& enabled) {
+    QMutexLocker locker(&mutex);
+    trackingEnabled = (enabled == "true");
+    signalManager->emitSignal("consoleTextMR",
+        QString("Tracking %1").arg(trackingEnabled ? "enabled" : "disabled"));
 }
 
 } // namespace mrigtlbridge

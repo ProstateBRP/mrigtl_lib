@@ -37,6 +37,7 @@ private slots:
     void onStartSequence();
     void onStopSequence();
     void onUpdateScanPlane(const QVariantMap& param);
+    void onSetTrackingEnabled(const QString& enabled);
 
 protected slots:
     void process() override;
@@ -47,8 +48,9 @@ protected:
 
 private:
     bool running;
+    bool trackingEnabled;
     QMutex mutex;
-    
+
     // Scan plane parameters
     QVector<QVariantMap> scanPlanes;
 };

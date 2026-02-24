@@ -30,7 +30,8 @@ MRSimWidget::MRSimWidget(QObject* parent)
       startSequenceButton(nullptr),
       stopSequenceButton(nullptr),
       mrSimConsole(nullptr),
-      mrSimStatus(nullptr) {
+      mrSimStatus(nullptr),
+      trackingCheckBox(nullptr) {
     
     // Set the listener class for this widget
     listener_class << "MRSimListener";
@@ -84,6 +85,14 @@ void MRSimWidget::buildGUI(QWidget* parent) {
     sequenceButtonLayout->addWidget(stopSequenceButton);
     sequenceLayout->addLayout(sequenceButtonLayout);
     
+    // Preferences Group
+    QGroupBox* preferencesGroupBox = new QGroupBox("Preferences", parent);
+    layout->addWidget(preferencesGroupBox);
+
+    QVBoxLayout* preferencesLayout = new QVBoxLayout(preferencesGroupBox);
+    trackingCheckBox = new QCheckBox("Enable Tracking", parent);
+    preferencesLayout->addWidget(trackingCheckBox);
+
     // Console
     QGroupBox* consoleGroupBox = new QGroupBox("Console", parent);
     layout->addWidget(consoleGroupBox);
@@ -98,6 +107,7 @@ void MRSimWidget::buildGUI(QWidget* parent) {
     connect(mrSimDisconnectButton, &QPushButton::clicked, this, &MRSimWidget::onDisconnectButtonClicked);
     connect(startSequenceButton, &QPushButton::clicked, this, &MRSimWidget::onStartSequenceClicked);
     connect(stopSequenceButton, &QPushButton::clicked, this, &MRSimWidget::onStopSequenceClicked);
+    connect(trackingCheckBox, &QCheckBox::stateChanged, this, &MRSimWidget::onTrackingCheckBoxChanged);
 }
 
 void MRSimWidget::updateGUI(const QString& state) {
@@ -185,6 +195,13 @@ void MRSimWidget::onStopSequenceClicked() {
 void MRSimWidget::onConsoleTextReceived(const QString& text) {
     QString timestamp = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
     mrSimConsole->append(QString("[%1] %2").arg(timestamp, text));
+}
+
+void MRSimWidget::onTrackingCheckBoxChanged(int state) {
+    if (signalManager) {
+        signalManager->emitSignal("setTrackingEnabled",
+            QString(state == Qt::Checked ? "true" : "false"));
+    }
 }
 
 } // namespace mrigtlbridge
