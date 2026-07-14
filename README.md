@@ -108,6 +108,34 @@ The application has the following main components:
 3. **Widgets**: UI components for each system
 4. **Main Window**: The application shell that contains the widgets
 
+## Scripts
+
+### log_to_tracking.py
+
+Converts a Siemens ICE tracking log file into a tracking CSV file.
+
+The log contains lines such as:
+
+```
+216|2025/10/28-17:28:40.707348|ICE.IceWWTracking.DLL|MrIrisContainer|BG debug, fill header for track coil RX3 and proj X, positions (19.4856, 0, 0)|
+```
+
+For each coil channel (e.g. `RX3`), the script combines the `proj X`, `proj Y`, and `proj Z` lines into a single `(X, Y, Z)` sample. It identifies the value in each line by which position slot is nonzero rather than by the `proj` label, so it also handles log variants where the labels are shifted (e.g. `W`/`X`/`Y`/`Z`).
+
+Usage:
+
+```bash
+python3 script/log_to_tracking.py <log_file> <csv_file>
+```
+
+Example:
+
+```bash
+python3 script/log_to_tracking.py logviewer.log tracking.csv
+```
+
+The output CSV has the columns: `channel, timestamp, X, Y, Z`.
+
 ## License
 
 See the LICENSE file for details.
