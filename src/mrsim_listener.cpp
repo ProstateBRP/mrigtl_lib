@@ -20,6 +20,9 @@
 #include <QCoreApplication>
 #include <QMutexLocker>
 #include <QDateTime>
+#include <QFile>
+#include <QTextStream>
+#include <QStringList>
 #include <cmath>
 
 namespace mrigtlbridge {
@@ -28,11 +31,15 @@ MRSimListener::MRSimListener(QObject* parent)
     : ListenerBase(parent),
       running(false),
       trackingEnabled(false),
-      trackingChannels(1) {
+      trackingChannels(1),
+      trackingSource("random"),
+      trackingFileLoaded(false) {
 
     customSignalList = {
         {"setTrackingEnabled", "str"},
-        {"setTrackingChannels", "str"}
+        {"setTrackingChannels", "str"},
+        {"setTrackingSource", "str"},
+        {"setTrackingFile", "str"}
     };
 
     // Initialize scan planes
@@ -54,6 +61,8 @@ void MRSimListener::connectSlots(SignalManager* sm) {
     sm->connectSlot("updateScanPlane", this, SLOT(onUpdateScanPlane(QVariantMap)));
     sm->connectSlot("setTrackingEnabled", this, SLOT(onSetTrackingEnabled(QString)));
     sm->connectSlot("setTrackingChannels", this, SLOT(onSetTrackingChannels(QString)));
+    sm->connectSlot("setTrackingSource", this, SLOT(onSetTrackingSource(QString)));
+    sm->connectSlot("setTrackingFile", this, SLOT(onSetTrackingFile(QString)));
 }
 
 void MRSimListener::disconnectSlots() {
@@ -64,6 +73,8 @@ void MRSimListener::disconnectSlots() {
         signalManager->disconnectSlot("updateScanPlane", this, SLOT(onUpdateScanPlane(QVariantMap)));
         signalManager->disconnectSlot("setTrackingEnabled", this, SLOT(onSetTrackingEnabled(QString)));
         signalManager->disconnectSlot("setTrackingChannels", this, SLOT(onSetTrackingChannels(QString)));
+        signalManager->disconnectSlot("setTrackingSource", this, SLOT(onSetTrackingSource(QString)));
+        signalManager->disconnectSlot("setTrackingFile", this, SLOT(onSetTrackingFile(QString)));
     }
 }
 
@@ -162,26 +173,54 @@ void MRSimListener::process() {
 
             // Send simulated tracking data if enabled
             if (trackingEnabled) {
-                static float angle = 0.0f;
-                angle += 0.1f;
-                const float radius = 50.0f;
-                const float phaseStep = (trackingChannels > 1)
-                    ? (2.0f * M_PI / trackingChannels) : 0.0f;
                 QVariantList coilList;
-                for (int ch = 0; ch < trackingChannels; ++ch) {
-                    float phase = angle + ch * phaseStep;
-                    QVariantMap coil;
-                    coil["id"] = QString("SimCoil_%1").arg(ch);
-                    QVariantList pos;
-                    pos << radius * std::cos(phase)
-                        << radius * std::sin(phase)
-                        << 0.0f;
-                    coil["position"] = pos;
-                    coilList.append(coil);
+
+                if (trackingSource == "file") {
+                    if (trackingFileLoaded) {
+                        for (auto it = trackingFileSamples.constBegin();
+                             it != trackingFileSamples.constEnd(); ++it) {
+                            const QString& channel = it.key();
+                            const QVector<TrackingSample>& samples = it.value();
+                            if (samples.isEmpty()) {
+                                continue;
+                            }
+                            int idx = trackingFileIndex.value(channel, 0);
+                            const TrackingSample& s = samples[idx];
+                            QVariantMap coil;
+                            coil["id"] = channel;
+                            QVariantList pos;
+                            pos << s.x << s.y << s.z;
+                            coil["position"] = pos;
+                            coilList.append(coil);
+                            trackingFileIndex[channel] = (idx + 1) % samples.size();
+                        }
+                    }
+                    // If no tracking file has been loaded yet, skip this tick
+                    // silently rather than falling back to random data.
+                } else {
+                    static float angle = 0.0f;
+                    angle += 0.1f;
+                    const float radius = 50.0f;
+                    const float phaseStep = (trackingChannels > 1)
+                        ? (2.0f * M_PI / trackingChannels) : 0.0f;
+                    for (int ch = 0; ch < trackingChannels; ++ch) {
+                        float phase = angle + ch * phaseStep;
+                        QVariantMap coil;
+                        coil["id"] = QString("SimCoil_%1").arg(ch);
+                        QVariantList pos;
+                        pos << radius * std::cos(phase)
+                            << radius * std::sin(phase)
+                            << 0.0f;
+                        coil["position"] = pos;
+                        coilList.append(coil);
+                    }
                 }
-                QVariantMap trackingParam;
-                trackingParam["coils"] = coilList;
-                signalManager->emitSignal("sendTrackingDataIGTL", trackingParam);
+
+                if (!coilList.isEmpty()) {
+                    QVariantMap trackingParam;
+                    trackingParam["coils"] = coilList;
+                    signalManager->emitSignal("sendTrackingDataIGTL", trackingParam);
+                }
             }
         }
         catch (const std::exception& e) {
@@ -239,6 +278,76 @@ void MRSimListener::onSetTrackingChannels(const QString& channels) {
         signalManager->emitSignal("consoleTextMR",
             QString("Tracking channels set to %1").arg(trackingChannels));
     }
+}
+
+void MRSimListener::onSetTrackingSource(const QString& source) {
+    QMutexLocker locker(&mutex);
+    trackingSource = source;
+    signalManager->emitSignal("consoleTextMR",
+        QString("Tracking data source set to %1").arg(trackingSource));
+}
+
+void MRSimListener::onSetTrackingFile(const QString& filePath) {
+    QMutexLocker locker(&mutex);
+    trackingFilePath = filePath;
+    trackingFileLoaded = loadTrackingFile(filePath);
+    if (trackingFileLoaded) {
+        signalManager->emitSignal("consoleTextMR",
+            QString("Loaded tracking file: %1").arg(filePath));
+    } else {
+        signalManager->emitSignal("consoleTextMR",
+            QString("ERROR: Failed to load tracking file: %1").arg(filePath));
+    }
+}
+
+bool MRSimListener::loadTrackingFile(const QString& filePath) {
+    trackingFileSamples.clear();
+    trackingFileIndex.clear();
+
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return false;
+    }
+
+    QTextStream in(&file);
+    bool firstLine = true;
+    while (!in.atEnd()) {
+        QString line = in.readLine();
+        if (line.isEmpty()) {
+            continue;
+        }
+
+        QStringList fields = line.split(',');
+        if (firstLine) {
+            firstLine = false;
+            // Skip the header row (channel, timestamp, X, Y, Z).
+            if (fields.size() > 0 && fields[0].trimmed().compare("channel", Qt::CaseInsensitive) == 0) {
+                continue;
+            }
+        }
+
+        if (fields.size() < 5) {
+            continue;
+        }
+
+        QString channel = fields[0].trimmed();
+        bool okX = false, okY = false, okZ = false;
+        TrackingSample sample;
+        sample.x = fields[2].trimmed().toDouble(&okX);
+        sample.y = fields[3].trimmed().toDouble(&okY);
+        sample.z = fields[4].trimmed().toDouble(&okZ);
+        if (channel.isEmpty() || !okX || !okY || !okZ) {
+            continue;
+        }
+
+        trackingFileSamples[channel].append(sample);
+    }
+
+    for (auto it = trackingFileSamples.constBegin(); it != trackingFileSamples.constEnd(); ++it) {
+        trackingFileIndex[it.key()] = 0;
+    }
+
+    return !trackingFileSamples.isEmpty();
 }
 
 } // namespace mrigtlbridge

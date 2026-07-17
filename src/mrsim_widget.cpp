@@ -20,6 +20,7 @@
 #include <QGroupBox>
 #include <QDebug>
 #include <QDateTime>
+#include <QFileDialog>
 
 namespace mrigtlbridge {
 
@@ -32,8 +33,11 @@ MRSimWidget::MRSimWidget(QObject* parent)
       mrSimConsole(nullptr),
       mrSimStatus(nullptr),
       trackingCheckBox(nullptr),
-      trackingChannelsSpinBox(nullptr) {
-    
+      trackingChannelsSpinBox(nullptr),
+      trackingSourceComboBox(nullptr),
+      trackingFilePathLineEdit(nullptr),
+      trackingFileBrowseButton(nullptr) {
+
     // Set the listener class for this widget
     listener_class << "MRSimListener";
 }
@@ -95,6 +99,17 @@ void MRSimWidget::buildGUI(QWidget* parent) {
     trackingCheckBox = new QCheckBox("Enable Tracking", parent);
     preferencesLayout->addWidget(trackingCheckBox);
 
+    QHBoxLayout* sourceLayout = new QHBoxLayout();
+    QLabel* sourceLabel = new QLabel("Data Source:", parent);
+    trackingSourceComboBox = new QComboBox(parent);
+    trackingSourceComboBox->addItem("Random", QVariant("random"));
+    trackingSourceComboBox->addItem("Tracking File", QVariant("file"));
+    trackingSourceComboBox->setEnabled(false);
+    sourceLayout->addWidget(sourceLabel);
+    sourceLayout->addWidget(trackingSourceComboBox);
+    sourceLayout->addStretch();
+    preferencesLayout->addLayout(sourceLayout);
+
     QHBoxLayout* channelsLayout = new QHBoxLayout();
     QLabel* channelsLabel = new QLabel("Tracking Channels:", parent);
     trackingChannelsSpinBox = new QSpinBox(parent);
@@ -106,6 +121,19 @@ void MRSimWidget::buildGUI(QWidget* parent) {
     channelsLayout->addWidget(trackingChannelsSpinBox);
     channelsLayout->addStretch();
     preferencesLayout->addLayout(channelsLayout);
+
+    QHBoxLayout* fileLayout = new QHBoxLayout();
+    QLabel* fileLabel = new QLabel("Tracking File:", parent);
+    trackingFilePathLineEdit = new QLineEdit(parent);
+    trackingFilePathLineEdit->setReadOnly(true);
+    trackingFilePathLineEdit->setPlaceholderText("No file selected");
+    trackingFilePathLineEdit->setEnabled(false);
+    trackingFileBrowseButton = new QPushButton("Browse...", parent);
+    trackingFileBrowseButton->setEnabled(false);
+    fileLayout->addWidget(fileLabel);
+    fileLayout->addWidget(trackingFilePathLineEdit);
+    fileLayout->addWidget(trackingFileBrowseButton);
+    preferencesLayout->addLayout(fileLayout);
 
     // Console
     QGroupBox* consoleGroupBox = new QGroupBox("Console", parent);
@@ -124,6 +152,9 @@ void MRSimWidget::buildGUI(QWidget* parent) {
     connect(trackingCheckBox, &QCheckBox::stateChanged, this, &MRSimWidget::onTrackingCheckBoxChanged);
     connect(trackingChannelsSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
             this, &MRSimWidget::onTrackingChannelsChanged);
+    connect(trackingSourceComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &MRSimWidget::onTrackingSourceChanged);
+    connect(trackingFileBrowseButton, &QPushButton::clicked, this, &MRSimWidget::onTrackingFileBrowseClicked);
 }
 
 void MRSimWidget::updateGUI(const QString& state) {
@@ -215,7 +246,8 @@ void MRSimWidget::onConsoleTextReceived(const QString& text) {
 
 void MRSimWidget::onTrackingCheckBoxChanged(int state) {
     bool checked = (state == Qt::Checked);
-    trackingChannelsSpinBox->setEnabled(checked);
+    trackingSourceComboBox->setEnabled(checked);
+    updateTrackingSourceControls();
     if (signalManager) {
         signalManager->emitSignal("setTrackingEnabled", QString(checked ? "true" : "false"));
     }
@@ -225,6 +257,37 @@ void MRSimWidget::onTrackingChannelsChanged(int value) {
     if (signalManager) {
         signalManager->emitSignal("setTrackingChannels", QString::number(value));
     }
+}
+
+void MRSimWidget::onTrackingSourceChanged(int index) {
+    Q_UNUSED(index);
+    updateTrackingSourceControls();
+    if (signalManager) {
+        QString source = trackingSourceComboBox->currentData().toString();
+        signalManager->emitSignal("setTrackingSource", source);
+    }
+}
+
+void MRSimWidget::onTrackingFileBrowseClicked() {
+    QString filePath = QFileDialog::getOpenFileName(
+        nullptr, "Select Tracking File", QString(), "CSV Files (*.csv);;All Files (*)");
+    if (filePath.isEmpty()) {
+        return;
+    }
+
+    trackingFilePathLineEdit->setText(filePath);
+    if (signalManager) {
+        signalManager->emitSignal("setTrackingFile", filePath);
+    }
+}
+
+void MRSimWidget::updateTrackingSourceControls() {
+    bool trackingChecked = trackingCheckBox->isChecked();
+    bool fileSource = (trackingSourceComboBox->currentData().toString() == "file");
+
+    trackingChannelsSpinBox->setEnabled(trackingChecked && !fileSource);
+    trackingFilePathLineEdit->setEnabled(trackingChecked && fileSource);
+    trackingFileBrowseButton->setEnabled(trackingChecked && fileSource);
 }
 
 } // namespace mrigtlbridge

@@ -19,6 +19,7 @@
 #include <QVariant>
 #include <QMutex>
 #include <QVector>
+#include <QMap>
 #include <QString>
 
 namespace mrigtlbridge {
@@ -39,6 +40,8 @@ private slots:
     void onUpdateScanPlane(const QVariantMap& param);
     void onSetTrackingEnabled(const QString& enabled);
     void onSetTrackingChannels(const QString& channels);
+    void onSetTrackingSource(const QString& source);
+    void onSetTrackingFile(const QString& filePath);
 
 protected slots:
     void process() override;
@@ -48,10 +51,29 @@ protected:
     MRIGTL_LIB_EXPORT void finalize() override;
 
 private:
+    // One (X, Y, Z) sample read from a tracking file.
+    struct TrackingSample {
+        double x;
+        double y;
+        double z;
+    };
+
+    // Load a tracking CSV file (as produced by script/log_to_tracking.py)
+    // with columns: channel, timestamp, X, Y, Z. Returns true if at least
+    // one sample was loaded successfully.
+    bool loadTrackingFile(const QString& filePath);
+
     bool running;
     bool trackingEnabled;
     int trackingChannels;
     QMutex mutex;
+
+    // Tracking data source: "random" (default) or "file"
+    QString trackingSource;
+    QString trackingFilePath;
+    bool trackingFileLoaded;
+    QMap<QString, QVector<TrackingSample>> trackingFileSamples;
+    QMap<QString, int> trackingFileIndex;
 
     // Scan plane parameters
     QVector<QVariantMap> scanPlanes;

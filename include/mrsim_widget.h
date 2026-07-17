@@ -22,6 +22,7 @@
 #include <QPushButton>
 #include <QTextEdit>
 #include <QLabel>
+#include <QComboBox>
 #include <memory>
 
 namespace mrigtlbridge {
@@ -45,8 +46,14 @@ private slots:
     void onConsoleTextReceived(const QString& text);
     void onTrackingCheckBoxChanged(int state);
     void onTrackingChannelsChanged(int value);
+    void onTrackingSourceChanged(int index);
+    void onTrackingFileBrowseClicked();
 
 private:
+    // Update enabled/disabled state of the tracking source controls
+    // based on the tracking checkbox and source combo box selections.
+    void updateTrackingSourceControls();
+
     // GUI elements
     QPushButton* mrSimConnectButton;
     QPushButton* mrSimDisconnectButton;
@@ -56,6 +63,9 @@ private:
     QLabel* mrSimStatus;
     QCheckBox* trackingCheckBox;
     QSpinBox* trackingChannelsSpinBox;
+    QComboBox* trackingSourceComboBox;
+    QLineEdit* trackingFilePathLineEdit;
+    QPushButton* trackingFileBrowseButton;
 };
 
 } // namespace mrigtlbridge
